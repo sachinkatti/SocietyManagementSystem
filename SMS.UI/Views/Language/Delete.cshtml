@@ -1,0 +1,29 @@
+﻿@model SMS.Application.LanguageDto
+
+@{
+    ViewData["Title"] = "Delete Language";
+}
+
+<h2>Delete Language</h2>
+
+<h4>Are you sure you want to delete this language?</h4>
+
+<div>
+    <dl class="row">
+        <dt class="col-sm-3">Language Code</dt>
+        <dd class="col-sm-9">@Model.LanguageCode</dd>
+
+        <dt class="col-sm-3">Language Name</dt>
+        <dd class="col-sm-9">@Model.LanguageName</dd>
+
+        <dt class="col-sm-3">Description</dt>
+        <dd class="col-sm-9">@Model.Description</dd>
+    </dl>
+
+    <form asp-action="DeleteConfirmed" method="post">
+        <input type="hidden" name="languageId" value="@Model.LanguageId" />
+
+        <button type="submit" class="btn btn-danger">Delete</button>
+        <a asp-action="Index" class="btn btn-secondary">Cancel</a>
+    </form>
+</div>

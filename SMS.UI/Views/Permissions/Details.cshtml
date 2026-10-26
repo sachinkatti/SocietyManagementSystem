@@ -1,0 +1,42 @@
+﻿@model SMS.Application.PermissionDto
+
+@{
+    ViewData["Title"] = "Permission Details";
+}
+
+<div class="container mt-4">
+    <h2>Permission Details</h2>
+
+    <dl class="row">
+        <dt class="col-sm-3">Permission ID</dt>
+        <dd class="col-sm-9">@Model.PermissionId</dd>
+
+        <dt class="col-sm-3">Permission Name</dt>
+        <dd class="col-sm-9">@Model.PermissionName</dd>
+
+        <dt class="col-sm-3">Permission Code</dt>
+        <dd class="col-sm-9">@Model.PermissionCode</dd>
+
+        <dt class="col-sm-3">Description</dt>
+        <dd class="col-sm-9">@Model.Description</dd>
+
+        <dt class="col-sm-3">Status</dt>
+        <dd class="col-sm-9">@(Model.IsActive ? "Active" : "Inactive")</dd>
+
+        <dt class="col-sm-3">Created On</dt>
+        <dd class="col-sm-9">@Model.CreatedOn</dd>
+
+        <dt class="col-sm-3">Created By</dt>
+        <dd class="col-sm-9">@Model.CreatedBy</dd>
+
+        <dt class="col-sm-3">Modified On</dt>
+        <dd class="col-sm-9">@Model.ModifyOn</dd>
+
+        <dt class="col-sm-3">Modified By</dt>
+        <dd class="col-sm-9">@Model.ModifyBy</dd>
+    </dl>
+
+    <a asp-action="Edit" asp-route-id="@Model.PermissionId"
+       class="btn btn-warning">Edit</a>
+    <a asp-action="Index" class="btn btn-secondary">Back</a>
+</div>

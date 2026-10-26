@@ -1,0 +1,49 @@
+﻿@model SMS.Application.RolePermissionDto
+
+@{
+    ViewData["Title"] = "Role-Permission Details";
+}
+
+<div class="container mt-4">
+    <h2>Role-Permission Details</h2>
+
+    <dl class="row">
+        <dt class="col-sm-3">Mapping ID</dt>
+        <dd class="col-sm-9">@Model.RolePermissionId</dd>
+
+        <dt class="col-sm-3">Role ID</dt>
+        <dd class="col-sm-9">@Model.RoleId</dd>
+
+        <dt class="col-sm-3">Role Name</dt>
+        <dd class="col-sm-9">@Model.RoleName</dd>
+
+        <dt class="col-sm-3">Permission ID</dt>
+        <dd class="col-sm-9">@Model.PermissionId</dd>
+
+        <dt class="col-sm-3">Permission Name</dt>
+        <dd class="col-sm-9">@Model.PermissionName</dd>
+
+        <dt class="col-sm-3">Permission Code</dt>
+        <dd class="col-sm-9">@Model.PermissionCode</dd>
+
+        <dt class="col-sm-3">Description</dt>
+        <dd class="col-sm-9">@Model.Description</dd>
+
+        <dt class="col-sm-3">Status</dt>
+        <dd class="col-sm-9">@(Model.IsActive ? "Active" : "Inactive")</dd>
+
+        <dt class="col-sm-3">Created On</dt>
+        <dd class="col-sm-9">@Model.CreatedOn</dd>
+
+        <dt class="col-sm-3">Created By</dt>
+        <dd class="col-sm-9">@Model.CreatedBy</dd>
+
+        <dt class="col-sm-3">Modified On</dt>
+        <dd class="col-sm-9">@Model.ModifyOn</dd>
+
+        <dt class="col-sm-3">Modified By</dt>
+        <dd class="col-sm-9">@Model.ModifyBy</dd>
+    </dl>
+
+    <a asp-action="Index" class="btn btn-secondary">Back</a>
+</div>

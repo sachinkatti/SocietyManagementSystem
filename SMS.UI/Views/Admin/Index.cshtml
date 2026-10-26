@@ -1,0 +1,109 @@
+﻿@model IEnumerable<SMS.Application.AdminDto>
+
+@{
+    ViewData["Title"] = "Admin Management";
+}
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2>Admin Management</h2>
+
+        <a asp-controller="Admin"
+               asp-action="Create"
+               class="btn btn-primary">
+            Add New Admin
+        </a>
+    </div>
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show">
+            @TempData["SuccessMessage"]
+            <button type="button"
+                    class="btn-close"
+                    data-bs-dismiss="alert">
+            </button>
+        </div>
+    }
+
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger">
+            @TempData["ErrorMessage"]
+        </div>
+    }
+
+    @if (Model == null || !Model.Any())
+    {
+        <div class="alert alert-info">
+            No active administrators found.
+        </div>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="table table-bordered table-striped table-hover">
+                <thead class="table-dark">
+                    <tr>
+                        <th>Admin ID</th>
+                        <th>User ID</th>
+                        <th>Name</th>
+                        <th>Email</th>
+                        <th>Phone</th>
+                        <th>Designation</th>
+                        <th>Contact Number</th>
+                        <th>Date Assigned</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    @foreach (var admin in Model)
+                    {
+                        <tr>
+                            <td>@admin.AdminId</td>
+                            <td>@admin.UserId</td>
+                            <td>
+                                @admin.FirstName
+                                @if (!string.IsNullOrWhiteSpace(admin.MiddleName))
+                                {
+                                    @(" " + admin.MiddleName)
+                                }
+                                @(" " + admin.LastName)
+                            </td>
+                            <td>@admin.Email</td>
+                            <td>@admin.PhoneNumber</td>
+                            <td>@admin.Designation</td>
+                            <td>@admin.ContactNumber</td>
+                            <td>@admin.DateAssigned.ToString("dd-MM-yyyy")</td>
+                            <td>
+                                <div class="d-flex gap-1">
+                                    <a asp-controller="Admin"
+                                           asp-action="Details"
+                                           asp-route-id="@admin.AdminId"
+                                           class="btn btn-sm btn-info">
+                                        Details
+                                    </a>
+
+                                    <a asp-controller="Admin"
+                                           asp-action="Edit"
+                                           asp-route-id="@admin.AdminId"
+                                           class="btn btn-sm btn-warning">
+                                        Edit
+                                    </a>
+
+                                    <a asp-controller="Admin"
+                                           asp-action="Delete"
+                                           asp-route-id="@admin.AdminId"
+                                           class="btn btn-sm btn-danger">
+                                        Delete
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>

@@ -1,0 +1,46 @@
+﻿@model SMS.Application.CityDto
+
+@{
+    ViewData["Title"] = "Delete City";
+}
+
+<div class="container mt-4">
+    <h2>Delete City</h2>
+
+    <div class="alert alert-danger">
+        Are you sure you want to delete this city?
+    </div>
+
+    <dl class="row">
+        <dt class="col-sm-3">City Name</dt>
+        <dd class="col-sm-9">@Model.CityName</dd>
+
+        <dt class="col-sm-3">City Code</dt>
+        <dd class="col-sm-9">@Model.CityCode</dd>
+
+        <dt class="col-sm-3">Postal Code</dt>
+        <dd class="col-sm-9">@Model.PostalCode</dd>
+
+        <dt class="col-sm-3">Taluk</dt>
+        <dd class="col-sm-9">@Model.TalukName</dd>
+
+        <dt class="col-sm-3">Description</dt>
+        <dd class="col-sm-9">@Model.Description</dd>
+    </dl>
+
+    <form asp-action="DeleteConfirmed" method="post">
+        <input type="hidden"
+               name="cityId"
+               value="@Model.CityId" />
+
+        <button type="submit"
+                class="btn btn-danger">
+            Delete
+        </button>
+
+        <a asp-action="Index"
+               class="btn btn-secondary">
+            Cancel
+        </a>
+    </form>
+</div>

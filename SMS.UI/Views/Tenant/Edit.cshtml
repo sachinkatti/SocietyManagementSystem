@@ -1,0 +1,82 @@
+﻿@model SMS.Application.TenantDto
+
+@{
+    ViewData["Title"] = "Edit Tenant";
+}
+
+<h2>Edit Tenant</h2>
+
+<hr />
+
+<div class="row">
+    <div class="col-md-8">
+        <form asp-action="Edit"
+              asp-route-id="@Model.TenantId"
+              method="post">
+
+            <input type="hidden" asp-for="TenantId" />
+
+            <div asp-validation-summary="ModelOnly"
+                 class="text-danger mb-3"></div>
+
+            <div class="mb-3">
+                <label asp-for="TenantName" class="form-label"></label>
+                <input asp-for="TenantName" class="form-control" />
+                <span asp-validation-for="TenantName"
+                      class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="TenantCode" class="form-label"></label>
+                <input asp-for="TenantCode" class="form-control" />
+                <span asp-validation-for="TenantCode"
+                      class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="TenantAddress" class="form-label"></label>
+                <textarea asp-for="TenantAddress"
+                          class="form-control"></textarea>
+                <span asp-validation-for="TenantAddress"
+                      class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="Email" class="form-label"></label>
+                <input asp-for="Email" class="form-control" />
+                <span asp-validation-for="Email"
+                      class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="PhoneNumber" class="form-label"></label>
+                <input asp-for="PhoneNumber" class="form-control" />
+                <span asp-validation-for="PhoneNumber"
+                      class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="TenantDescription"
+                       class="form-label"></label>
+                <textarea asp-for="TenantDescription"
+                          class="form-control"></textarea>
+                <span asp-validation-for="TenantDescription"
+                      class="text-danger"></span>
+            </div>
+
+            <div class="form-check mb-3">
+                <input asp-for="IsActive" class="form-check-input" />
+                <label asp-for="IsActive" class="form-check-label">
+                    Active
+                </label>
+            </div>
+
+            <button type="submit" class="btn btn-primary">Update</button>
+            <a asp-action="Index" class="btn btn-secondary">Back</a>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

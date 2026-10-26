@@ -1,0 +1,25 @@
+﻿@model SMS.Application.MaintenanceBillDto
+
+<h2>Delete Maintenance Bill</h2>
+
+<p>Are you sure you want to deactivate this bill?</p>
+
+<dl class="row">
+    <dt class="col-sm-3">Bill ID</dt>
+    <dd class="col-sm-9">@Model.BillId</dd>
+
+    <dt class="col-sm-3">Flat ID</dt>
+    <dd class="col-sm-9">@Model.FlatId</dd>
+
+    <dt class="col-sm-3">Billing Period</dt>
+    <dd class="col-sm-9">@Model.BillingMonth / @Model.BillingYear</dd>
+
+    <dt class="col-sm-3">Total Amount</dt>
+    <dd class="col-sm-9">@Model.TotalAmount.ToString("N2")</dd>
+</dl>
+
+<form asp-action="Delete" asp-route-id="@Model.BillId" method="post">
+    @Html.AntiForgeryToken()
+    <button type="submit" class="btn btn-danger">Confirm Delete</button>
+    <a asp-action="Index" class="btn btn-secondary">Cancel</a>
+</form>

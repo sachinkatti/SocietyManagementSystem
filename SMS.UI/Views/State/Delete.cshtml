@@ -1,0 +1,40 @@
+﻿@model SMS.Application.StateDto
+
+@{
+    ViewData["Title"] = "Delete State";
+}
+
+<div class="container mt-4">
+    <h2>Delete State</h2>
+
+    <div class="alert alert-danger">
+        Are you sure you want to delete this state?
+    </div>
+
+    <dl class="row">
+        <dt class="col-sm-3">State Name</dt>
+        <dd class="col-sm-9">@Model.StateName</dd>
+
+        <dt class="col-sm-3">State Code</dt>
+        <dd class="col-sm-9">@Model.StateCode</dd>
+
+        <dt class="col-sm-3">Country</dt>
+        <dd class="col-sm-9">@Model.CountryName</dd>
+    </dl>
+
+    <form asp-action="DeleteConfirmed" method="post">
+        <input type="hidden"
+               name="stateId"
+               value="@Model.StateId" />
+
+        <button type="submit"
+                class="btn btn-danger">
+            Delete
+        </button>
+
+        <a asp-action="Index"
+               class="btn btn-secondary">
+            Cancel
+        </a>
+    </form>
+</div>

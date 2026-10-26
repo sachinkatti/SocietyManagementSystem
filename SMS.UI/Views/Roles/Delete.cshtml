@@ -1,0 +1,33 @@
+﻿@model SMS.Application.RoleDto
+
+@{
+    ViewData["Title"] = "Deactivate Role";
+}
+
+<div class="container mt-4">
+    <h2>Deactivate Role</h2>
+
+    <div class="alert alert-warning">
+        Are you sure you want to deactivate this role?
+    </div>
+
+    <dl class="row">
+        <dt class="col-sm-3">Role ID</dt>
+        <dd class="col-sm-9">@Model.RoleId</dd>
+
+        <dt class="col-sm-3">Tenant ID</dt>
+        <dd class="col-sm-9">@Model.TenantId</dd>
+
+        <dt class="col-sm-3">Role Name</dt>
+        <dd class="col-sm-9">@Model.RoleName</dd>
+
+        <dt class="col-sm-3">Role Code</dt>
+        <dd class="col-sm-9">@Model.RoleCode</dd>
+    </dl>
+
+    <form asp-action="Delete" asp-route-id="@Model.RoleId" method="post">
+        @Html.AntiForgeryToken()
+        <button type="submit" class="btn btn-danger">Confirm Deactivation</button>
+        <a asp-action="Index" class="btn btn-secondary">Cancel</a>
+    </form>
+</div>

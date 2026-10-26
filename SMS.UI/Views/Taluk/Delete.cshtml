@@ -1,0 +1,43 @@
+﻿@model SMS.Application.TalukDto
+
+@{
+    ViewData["Title"] = "Delete Taluk";
+}
+
+<div class="container mt-4">
+    <h2>Delete Taluk</h2>
+
+    <div class="alert alert-danger">
+        Are you sure you want to delete this taluk?
+    </div>
+
+    <dl class="row">
+        <dt class="col-sm-3">Taluk Name</dt>
+        <dd class="col-sm-9">@Model.TalukName</dd>
+
+        <dt class="col-sm-3">Taluk Code</dt>
+        <dd class="col-sm-9">@Model.TalukCode</dd>
+
+        <dt class="col-sm-3">District</dt>
+        <dd class="col-sm-9">@Model.DistrictName</dd>
+
+        <dt class="col-sm-3">Description</dt>
+        <dd class="col-sm-9">@Model.Description</dd>
+    </dl>
+
+    <form asp-action="DeleteConfirmed" method="post">
+        <input type="hidden"
+               name="talukId"
+               value="@Model.TalukId" />
+
+        <button type="submit"
+                class="btn btn-danger">
+            Delete
+        </button>
+
+        <a asp-action="Index"
+               class="btn btn-secondary">
+            Cancel
+        </a>
+    </form>
+</div>

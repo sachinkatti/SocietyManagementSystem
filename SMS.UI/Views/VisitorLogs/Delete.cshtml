@@ -1,0 +1,34 @@
+﻿@model SMS.Application.VisitorLogDto
+
+@{
+    ViewData["Title"] = "Delete Visitor";
+}
+
+<h2>Delete Visitor Log</h2>
+
+<div class="alert alert-warning">
+    Are you sure you want to delete this visitor log? It will be deactivated rather than physically removed from the database.
+</div>
+
+<dl class="row">
+    <dt class="col-sm-3">Visitor Name</dt>
+    <dd class="col-sm-9">@Model.VisitorName</dd>
+
+    <dt class="col-sm-3">Phone Number</dt>
+    <dd class="col-sm-9">@Model.PhoneNumber</dd>
+
+    <dt class="col-sm-3">Visiting Flat</dt>
+    <dd class="col-sm-9">@Model.FlatNumber</dd>
+
+    <dt class="col-sm-3">Purpose</dt>
+    <dd class="col-sm-9">@Model.Purpose</dd>
+
+    <dt class="col-sm-3">Entry Time</dt>
+    <dd class="col-sm-9">@Model.EntryTime.ToString("dd-MM-yyyy HH:mm")</dd>
+</dl>
+
+<form asp-action="Delete" asp-route-id="@Model.VisitorId" method="post">
+    @Html.AntiForgeryToken()
+    <button type="submit" class="btn btn-danger">Confirm Delete</button>
+    <a asp-action="Index" class="btn btn-secondary">Cancel</a>
+</form>

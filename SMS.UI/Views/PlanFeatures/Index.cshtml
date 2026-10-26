@@ -1,0 +1,51 @@
+﻿@model IEnumerable<SMS.Application.PlanFeatureDto>
+
+@{
+    ViewData["Title"] = "Plan Feature Mappings";
+}
+
+<h2>Plan Feature Mappings</h2>
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success">@TempData["SuccessMessage"]</div>
+}
+
+<p>
+    <a asp-action="Create" class="btn btn-primary">Add Feature to Plan</a>
+</p>
+
+<table class="table table-bordered table-striped">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Plan</th>
+            <th>Feature</th>
+            <th>Feature Code</th>
+            <th>Feature Value</th>
+            <th>Description</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>@item.PlanFeatureId</td>
+                <td>@item.PlanName</td>
+                <td>@item.FeatureName</td>
+                <td>@item.FeatureCode</td>
+                <td>@item.FeatureValue</td>
+                <td>@item.Description</td>
+                <td>
+                    <a asp-action="Details" asp-route-id="@item.PlanFeatureId"
+                       class="btn btn-info btn-sm">Details</a>
+                    <a asp-action="Edit" asp-route-id="@item.PlanFeatureId"
+                       class="btn btn-warning btn-sm">Edit</a>
+                    <a asp-action="Delete" asp-route-id="@item.PlanFeatureId"
+                       class="btn btn-danger btn-sm">Delete</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

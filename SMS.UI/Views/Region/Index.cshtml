@@ -1,0 +1,41 @@
+﻿@model IEnumerable<SMS.Application.RegionDto>
+
+@{
+    ViewData["Title"] = "Regions";
+}
+
+<h2>Regions</h2>
+
+<p>
+    <a asp-action="Create" class="btn btn-primary">Create Region</a>
+</p>
+
+<table class="table table-bordered table-striped">
+    <thead>
+        <tr>
+            <th>Id</th>
+            <th>Region Name</th>
+            <th>Region Code</th>
+            <th>Description</th>
+            <th>Active</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>@item.RegionId</td>
+                <td>@item.RegionName</td>
+                <td>@item.RegionCode</td>
+                <td>@item.Description</td>
+                <td>@item.IsActive</td>
+                <td>
+                    <a asp-action="Details" asp-route-id="@item.RegionId" class="btn btn-info btn-sm">Details</a>
+                    <a asp-action="Edit" asp-route-id="@item.RegionId" class="btn btn-warning btn-sm">Edit</a>
+                    <a asp-action="Delete" asp-route-id="@item.RegionId" class="btn btn-danger btn-sm">Delete</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

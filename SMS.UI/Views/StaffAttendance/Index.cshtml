@@ -1,0 +1,39 @@
+﻿@model List<SMS.Application.StaffAttendanceDto>
+
+<h2>Staff Attendance</h2>
+
+<p>
+    <a asp-action="Create" class="btn btn-primary">Add Attendance</a>
+</p>
+
+<table class="table table-bordered table-striped">
+    <thead>
+        <tr>
+            <th>Staff Name</th>
+            <th>Staff Role</th>
+            <th>Flat ID</th>
+            <th>Check-In</th>
+            <th>Check-Out</th>
+            <th>Tenant ID</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>@item.StaffName</td>
+                <td>@item.StaffRole</td>
+                <td>@item.FlatId</td>
+                <td>@item.CheckInTime.ToString("dd-MM-yyyy HH:mm")</td>
+                <td>@(item.CheckOutTime?.ToString("dd-MM-yyyy HH:mm") ?? "Not checked out")</td>
+                <td>@item.TenantId</td>
+                <td>
+                    <a asp-action="Details" asp-route-id="@item.AttendanceId">Details</a> |
+                    <a asp-action="Edit" asp-route-id="@item.AttendanceId">Edit</a> |
+                    <a asp-action="Delete" asp-route-id="@item.AttendanceId">Delete</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

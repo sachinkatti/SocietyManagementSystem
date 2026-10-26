@@ -1,0 +1,70 @@
+﻿@model IEnumerable<SMS.Application.WingDto>
+
+@{
+    ViewData["Title"] = "Wings";
+}
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2>Wings Management</h2>
+        <a asp-action="Create" class="btn btn-primary">Add New Wing</a>
+    </div>
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success">
+            @TempData["SuccessMessage"]
+        </div>
+    }
+
+    <div class="table-responsive">
+        <table class="table table-bordered table-striped">
+            <thead class="table-dark">
+                <tr>
+                    <th>Wing ID</th>
+                    <th>Tenant ID</th>
+                    <th>Wing Name</th>
+                    <th>Total Floors</th>
+                    <th>Description</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model != null && Model.Any())
+                {
+                    @foreach (var wing in Model)
+                    {
+                        <tr>
+                            <td>@wing.WingId</td>
+                            <td>@wing.TenantId</td>
+                            <td>@wing.WingName</td>
+                            <td>@wing.TotalFloors</td>
+                            <td>@wing.Description</td>
+                            <td>
+                                <a asp-action="Details"
+                                   asp-route-id="@wing.WingId"
+                                   class="btn btn-info btn-sm">Details</a>
+
+                                <a asp-action="Edit"
+                                   asp-route-id="@wing.WingId"
+                                   class="btn btn-warning btn-sm">Edit</a>
+
+                                <a asp-action="Delete"
+                                   asp-route-id="@wing.WingId"
+                                   class="btn btn-danger btn-sm">Delete</a>
+                            </td>
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="6" class="text-center">
+                            No active wings found.
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

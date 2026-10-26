@@ -1,0 +1,93 @@
+﻿@model SMS.Application.VisitorLogDto
+
+@{
+    ViewData["Title"] = "Edit Visitor";
+}
+
+<h2>Edit Visitor</h2>
+
+<form asp-action="Edit" asp-route-id="@Model.VisitorId" method="post">
+    @Html.AntiForgeryToken()
+    <input asp-for="VisitorId" type="hidden" />
+
+    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+    <div class="mb-3">
+        <label asp-for="VisitorName" class="form-label"></label>
+        <input asp-for="VisitorName" class="form-control" maxlength="100" />
+        <span asp-validation-for="VisitorName" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="PhoneNumber" class="form-label"></label>
+        <input asp-for="PhoneNumber" class="form-control" maxlength="15" />
+        <span asp-validation-for="PhoneNumber" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="VisitingFlatId" class="form-label">Visiting Flat</label>
+        <select asp-for="VisitingFlatId" asp-items="ViewBag.Flats" class="form-select">
+            <option value="">-- Select Flat --</option>
+        </select>
+        <span asp-validation-for="VisitingFlatId" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="Purpose" class="form-label"></label>
+        <input asp-for="Purpose" class="form-control" maxlength="50" />
+        <span asp-validation-for="Purpose" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="VehicleNumber" class="form-label"></label>
+        <input asp-for="VehicleNumber" class="form-control" maxlength="20" />
+        <span asp-validation-for="VehicleNumber" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="ApprovalMethod" class="form-label"></label>
+        <input asp-for="ApprovalMethod" class="form-control" maxlength="20" />
+        <span asp-validation-for="ApprovalMethod" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="EntryTime" class="form-label"></label>
+        <input asp-for="EntryTime" type="datetime-local"
+               asp-format="{0:yyyy-MM-ddTHH:mm}" class="form-control" />
+        <span asp-validation-for="EntryTime" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="ExitTime" class="form-label"></label>
+        <input asp-for="ExitTime" type="datetime-local"
+               asp-format="{0:yyyy-MM-ddTHH:mm}" class="form-control" />
+        <span asp-validation-for="ExitTime" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="LoggedByGuardId" class="form-label">Logged By Guard</label>
+        <select asp-for="LoggedByGuardId" asp-items="ViewBag.Guards" class="form-select">
+            <option value="">-- Select Guard (Optional) --</option>
+        </select>
+        <span asp-validation-for="LoggedByGuardId" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="Description" class="form-label"></label>
+        <textarea asp-for="Description" class="form-control" maxlength="500"></textarea>
+        <span asp-validation-for="Description" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="TenantId" class="form-label">Tenant ID (Optional)</label>
+        <input asp-for="TenantId" type="number" min="1" class="form-control" />
+        <span asp-validation-for="TenantId" class="text-danger"></span>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Update</button>
+    <a asp-action="Index" class="btn btn-secondary">Cancel</a>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

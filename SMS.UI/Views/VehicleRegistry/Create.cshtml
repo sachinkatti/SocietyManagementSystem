@@ -1,0 +1,45 @@
+﻿@model SMS.Application.VehicleRegistryDto
+
+<h2>Add Vehicle</h2>
+
+<form asp-action="Create" method="post">
+    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+    <div class="mb-3">
+        <label asp-for="FlatId">Flat</label>
+        <select asp-for="FlatId" asp-items="ViewBag.Flats" class="form-select">
+            <option value="">Select Flat</option>
+        </select>
+        <span asp-validation-for="FlatId" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="TenantId"></label>
+        <input asp-for="TenantId" type="number" class="form-control" />
+        <span asp-validation-for="TenantId" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="VehicleNumber"></label>
+        <input asp-for="VehicleNumber" class="form-control" />
+        <span asp-validation-for="VehicleNumber" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="VehicleType"></label>
+        <input asp-for="VehicleType" class="form-control" placeholder="Car, Bike, Scooter" />
+        <span asp-validation-for="VehicleType" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="Description"></label>
+        <textarea asp-for="Description" class="form-control"></textarea>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Save</button>
+    <a asp-action="Index" class="btn btn-secondary">Back</a>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

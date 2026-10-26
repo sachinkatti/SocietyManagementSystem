@@ -1,0 +1,30 @@
+﻿@model SMS.Application.SecurityGuardDto
+
+@{
+    ViewData["Title"] = "Security Guard Details";
+}
+
+<h2>Security Guard Details</h2>
+
+<dl class="row">
+    <dt class="col-sm-3">User Name</dt>
+    <dd class="col-sm-9">@Model.UserFullName</dd>
+
+    <dt class="col-sm-3">Email</dt>
+    <dd class="col-sm-9">@Model.UserEmail</dd>
+
+    <dt class="col-sm-3">Shift Timing</dt>
+    <dd class="col-sm-9">@Model.ShiftTiming</dd>
+
+    <dt class="col-sm-3">Assigned Gate</dt>
+    <dd class="col-sm-9">@Model.AssignedGate</dd>
+
+    <dt class="col-sm-3">Joining Date</dt>
+    <dd class="col-sm-9">@Model.JoiningDate.ToString("yyyy-MM-dd")</dd>
+
+    <dt class="col-sm-3">Created On</dt>
+    <dd class="col-sm-9">@Model.CreatedOn.ToString("yyyy-MM-dd HH:mm")</dd>
+</dl>
+
+<a asp-action="Edit" asp-route-id="@Model.GuardId" class="btn btn-primary">Edit</a>
+<a asp-action="Index" class="btn btn-secondary">Back</a>

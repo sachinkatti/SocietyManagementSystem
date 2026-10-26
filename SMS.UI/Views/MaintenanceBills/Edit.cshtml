@@ -1,0 +1,101 @@
+﻿@model SMS.Application.MaintenanceBillDto
+
+<h2>Edit Maintenance Bill</h2>
+
+<form asp-action="Edit" asp-route-id="@Model.BillId" method="post">
+    @Html.AntiForgeryToken()
+    <input asp-for="BillId" type="hidden" />
+
+    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+    <div class="mb-3">
+        <label asp-for="FlatId" class="form-label"></label>
+        <input asp-for="FlatId" type="number" min="1" class="form-control" />
+        <span asp-validation-for="FlatId" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="BillingMonth" class="form-label"></label>
+        <select asp-for="BillingMonth" class="form-select">
+            <option value="1">January</option>
+            <option value="2">February</option>
+            <option value="3">March</option>
+            <option value="4">April</option>
+            <option value="5">May</option>
+            <option value="6">June</option>
+            <option value="7">July</option>
+            <option value="8">August</option>
+            <option value="9">September</option>
+            <option value="10">October</option>
+            <option value="11">November</option>
+            <option value="12">December</option>
+        </select>
+        <span asp-validation-for="BillingMonth" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="BillingYear" class="form-label"></label>
+        <input asp-for="BillingYear" type="number" min="2000" max="9999" class="form-control" />
+        <span asp-validation-for="BillingYear" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="BaseAmount" class="form-label"></label>
+        <input asp-for="BaseAmount" type="number" min="0" step="0.01" class="form-control" />
+        <span asp-validation-for="BaseAmount" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="PenaltyAmount" class="form-label"></label>
+        <input asp-for="PenaltyAmount" type="number" min="0" step="0.01" class="form-control" />
+        <span asp-validation-for="PenaltyAmount" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="DueDate" class="form-label"></label>
+        <input asp-for="DueDate" type="date" class="form-control" />
+        <span asp-validation-for="DueDate" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="PaymentStatus" class="form-label"></label>
+        <select asp-for="PaymentStatus" class="form-select">
+            <option value="Pending">Pending</option>
+            <option value="Paid">Paid</option>
+            <option value="Overdue">Overdue</option>
+            <option value="PartiallyPaid">Partially Paid</option>
+        </select>
+        <span asp-validation-for="PaymentStatus" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="PaymentDate" class="form-label"></label>
+        <input asp-for="PaymentDate" type="date" class="form-control" />
+        <span asp-validation-for="PaymentDate" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="TransactionRef" class="form-label"></label>
+        <input asp-for="TransactionRef" maxlength="100" class="form-control" />
+        <span asp-validation-for="TransactionRef" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="Description" class="form-label"></label>
+        <textarea asp-for="Description" maxlength="500" class="form-control"></textarea>
+        <span asp-validation-for="Description" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="TenantId" class="form-label"></label>
+        <input asp-for="TenantId" type="number" min="1" class="form-control" />
+        <span asp-validation-for="TenantId" class="text-danger"></span>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Update Bill</button>
+    <a asp-action="Index" class="btn btn-secondary">Back</a>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

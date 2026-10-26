@@ -1,0 +1,53 @@
+﻿@model SMS.Application.StaffAttendanceDto
+
+<h2>Edit Staff Attendance</h2>
+
+<form asp-action="Edit" asp-route-id="@Model.AttendanceId" method="post">
+    @Html.AntiForgeryToken()
+    <input asp-for="AttendanceId" type="hidden" />
+
+    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+    <div class="mb-3">
+        <label asp-for="StaffName" class="form-label"></label>
+        <input asp-for="StaffName" class="form-control" maxlength="100" />
+        <span asp-validation-for="StaffName" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="StaffRole" class="form-label"></label>
+        <input asp-for="StaffRole" class="form-control" maxlength="50" />
+        <span asp-validation-for="StaffRole" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="FlatId" class="form-label"></label>
+        <input asp-for="FlatId" type="number" min="1" class="form-control" />
+        <span asp-validation-for="FlatId" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="CheckInTime" class="form-label"></label>
+        <input asp-for="CheckInTime" type="datetime-local" class="form-control" />
+        <span asp-validation-for="CheckInTime" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="CheckOutTime" class="form-label"></label>
+        <input asp-for="CheckOutTime" type="datetime-local" class="form-control" />
+        <span asp-validation-for="CheckOutTime" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="TenantId" class="form-label"></label>
+        <input asp-for="TenantId" type="number" min="1" class="form-control" />
+        <span asp-validation-for="TenantId" class="text-danger"></span>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Update</button>
+    <a asp-action="Index" class="btn btn-secondary">Back</a>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

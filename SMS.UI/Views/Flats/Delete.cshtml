@@ -1,0 +1,32 @@
+﻿@model SMS.Application.FlatDto
+
+@{
+    ViewData["Title"] = "Delete Flat";
+}
+
+<div class="container mt-4">
+    <h2>Delete Flat</h2>
+
+    <div class="alert alert-warning">
+        Are you sure you want to deactivate this flat?
+    </div>
+
+    <dl class="row">
+        <dt class="col-sm-3">Flat Number</dt>
+        <dd class="col-sm-9">@Model.FlatNumber</dd>
+
+        <dt class="col-sm-3">Wing ID</dt>
+        <dd class="col-sm-9">@Model.WingId</dd>
+
+        <dt class="col-sm-3">Floor Number</dt>
+        <dd class="col-sm-9">@Model.FloorNumber</dd>
+
+        <dt class="col-sm-3">Occupancy Status</dt>
+        <dd class="col-sm-9">@Model.OccupancyStatus</dd>
+    </dl>
+
+    <form asp-action="Delete" asp-route-id="@Model.FlatId" method="post">
+        <button type="submit" class="btn btn-danger">Confirm Delete</button>
+        <a asp-action="Index" class="btn btn-secondary">Cancel</a>
+    </form>
+</div>

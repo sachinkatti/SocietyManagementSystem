@@ -1,0 +1,58 @@
+﻿@model IEnumerable<SMS.Application.ComplaintDto>
+
+@{
+    ViewData["Title"] = "Complaints";
+}
+
+<h2>Complaints</h2>
+
+<p>
+    <a asp-action="Create" class="btn btn-primary">Add Complaint</a>
+</p>
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success">@TempData["SuccessMessage"]</div>
+}
+
+<div class="table-responsive">
+    <table class="table table-bordered table-striped">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Resident</th>
+                <th>Flat</th>
+                <th>Category</th>
+                <th>Description</th>
+                <th>Priority</th>
+                <th>Status</th>
+                <th>Date Raised</th>
+                <th>Date Resolved</th>
+                <th>Rating</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model)
+            {
+                <tr>
+                    <td>@item.ComplaintId</td>
+                    <td>@item.ResidentName</td>
+                    <td>@item.FlatNumber</td>
+                    <td>@item.Category</td>
+                    <td>@item.Description</td>
+                    <td>@item.Priority</td>
+                    <td>@item.Status</td>
+                    <td>@item.DateRaised.ToString("dd-MM-yyyy HH:mm")</td>
+                    <td>@(item.DateResolved?.ToString("dd-MM-yyyy HH:mm") ?? "-")</td>
+                    <td>@(item.ResidentRating?.ToString() ?? "-")</td>
+                    <td>
+                        <a asp-action="Details" asp-route-id="@item.ComplaintId">Details</a> |
+                        <a asp-action="Edit" asp-route-id="@item.ComplaintId">Edit</a> |
+                        <a asp-action="Delete" asp-route-id="@item.ComplaintId">Delete</a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>

@@ -1,0 +1,49 @@
+﻿@model SMS.Application.WingDto
+
+@{
+    ViewData["Title"] = "Wing Details";
+}
+
+<div class="container mt-4">
+    <h2>Wing Details</h2>
+    <hr />
+
+    <dl class="row">
+        <dt class="col-sm-3">Wing ID</dt>
+        <dd class="col-sm-9">@Model.WingId</dd>
+
+        <dt class="col-sm-3">Tenant ID</dt>
+        <dd class="col-sm-9">@Model.TenantId</dd>
+
+        <dt class="col-sm-3">Wing Name</dt>
+        <dd class="col-sm-9">@Model.WingName</dd>
+
+        <dt class="col-sm-3">Total Floors</dt>
+        <dd class="col-sm-9">@Model.TotalFloors</dd>
+
+        <dt class="col-sm-3">Description</dt>
+        <dd class="col-sm-9">@(Model.Description ?? "N/A")</dd>
+
+        <dt class="col-sm-3">Active</dt>
+        <dd class="col-sm-9">@(Model.IsActive ? "Yes" : "No")</dd>
+
+        <dt class="col-sm-3">Created On</dt>
+        <dd class="col-sm-9">@Model.CreatedOn.ToString("dd-MM-yyyy HH:mm")</dd>
+
+        <dt class="col-sm-3">Created By</dt>
+        <dd class="col-sm-9">@(Model.CreatedBy?.ToString() ?? "N/A")</dd>
+
+        <dt class="col-sm-3">Modified On</dt>
+        <dd class="col-sm-9">
+            @(Model.ModifyOn?.ToString("dd-MM-yyyy HH:mm") ?? "N/A")
+        </dd>
+
+        <dt class="col-sm-3">Modified By</dt>
+        <dd class="col-sm-9">@(Model.ModifyBy?.ToString() ?? "N/A")</dd>
+    </dl>
+
+    <a asp-action="Edit" asp-route-id="@Model.WingId"
+       class="btn btn-warning">Edit</a>
+
+    <a asp-action="Index" class="btn btn-secondary">Back to List</a>
+</div>

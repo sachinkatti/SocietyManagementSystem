@@ -1,0 +1,86 @@
+﻿@model SMS.Application.AdminDto
+
+@{
+    ViewData["Title"] = "Edit Admin";
+}
+
+<div class="container mt-4">
+    <h2>Edit Admin</h2>
+    <hr />
+
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <form asp-controller="Admin"
+                  asp-action="Edit"
+                  asp-route-id="@Model.AdminId"
+                  method="post">
+
+                @Html.AntiForgeryToken()
+
+                <input asp-for="AdminId" type="hidden" />
+                <input asp-for="UserId" type="hidden" />
+
+                <div asp-validation-summary="ModelOnly"
+                     class="text-danger mb-3"></div>
+
+                <div class="mb-3">
+                    <label class="form-label">Admin ID</label>
+                    <input value="@Model.AdminId"
+                           class="form-control" readonly />
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">User</label>
+                    <input value="@($"{Model.FirstName} {Model.LastName} ({Model.Email})")"
+                           class="form-control" readonly />
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Tenant ID</label>
+                    <input value="@Model.TenantId"
+                           class="form-control" readonly />
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="Designation" class="form-label"></label>
+                    <input asp-for="Designation" class="form-control" />
+                    <span asp-validation-for="Designation"
+                          class="text-danger"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="ContactNumber" class="form-label"></label>
+                    <input asp-for="ContactNumber" class="form-control" />
+                    <span asp-validation-for="ContactNumber"
+                          class="text-danger"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="DateAssigned" class="form-label"></label>
+                    <input asp-for="DateAssigned" type="date"
+                           class="form-control" />
+                    <span asp-validation-for="DateAssigned"
+                          class="text-danger"></span>
+                </div>
+
+                <div class="form-check mb-3">
+                    <input asp-for="IsActive" class="form-check-input" />
+                    <label asp-for="IsActive" class="form-check-label">
+                        Active
+                    </label>
+                </div>
+
+                <button type="submit" class="btn btn-primary">
+                    Update Admin
+                </button>
+
+                <a asp-controller="Admin" asp-action="Index"
+                   class="btn btn-secondary">Cancel</a>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

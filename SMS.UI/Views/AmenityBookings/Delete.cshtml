@@ -1,0 +1,32 @@
+﻿@model SMS.Application.AmenityBookingDto
+
+<h2>Delete Amenity Booking</h2>
+
+<p>Are you sure you want to deactivate this booking?</p>
+
+<dl class="row">
+    <dt class="col-sm-3">Booking ID</dt>
+    <dd class="col-sm-9">@Model.BookingId</dd>
+
+    <dt class="col-sm-3">Amenity</dt>
+    <dd class="col-sm-9">@Model.AmenityName</dd>
+
+    <dt class="col-sm-3">Flat</dt>
+    <dd class="col-sm-9">@Model.FlatNumber</dd>
+
+    <dt class="col-sm-3">Slot Date</dt>
+    <dd class="col-sm-9">@Model.SlotDate.ToString("dd-MM-yyyy")</dd>
+
+    <dt class="col-sm-3">Slot Time</dt>
+    <dd class="col-sm-9">@Model.SlotTime</dd>
+
+    <dt class="col-sm-3">Status</dt>
+    <dd class="col-sm-9">@Model.Status</dd>
+</dl>
+
+<form asp-action="Delete" asp-route-id="@Model.BookingId" method="post">
+    @Html.AntiForgeryToken()
+
+    <button type="submit" class="btn btn-danger">Confirm Delete</button>
+    <a asp-action="Index" class="btn btn-secondary">Cancel</a>
+</form>

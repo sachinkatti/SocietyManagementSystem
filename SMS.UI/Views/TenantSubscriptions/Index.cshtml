@@ -1,0 +1,47 @@
+﻿@model IEnumerable<SMS.Application.TenantSubscriptionDto>
+
+@{
+    ViewData["Title"] = "Tenant Subscriptions";
+}
+
+<h2>Tenant Subscriptions</h2>
+
+<p>
+    <a asp-action="Create" class="btn btn-primary">Create Subscription</a>
+</p>
+
+<table class="table table-bordered table-striped">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Tenant ID</th>
+            <th>Plan ID</th>
+            <th>Start Date</th>
+            <th>End Date</th>
+            <th>Status</th>
+            <th>Amount Paid</th>
+            <th>Payment Reference</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>@item.SubscriptionId</td>
+                <td>@item.TenantId</td>
+                <td>@item.PlanId</td>
+                <td>@item.StartDate.ToString("dd-MM-yyyy")</td>
+                <td>@item.EndDate.ToString("dd-MM-yyyy")</td>
+                <td>@item.Status</td>
+                <td>@item.AmountPaid.ToString("N2")</td>
+                <td>@item.PaymentReference</td>
+                <td>
+                    <a asp-action="Details" asp-route-id="@item.SubscriptionId">Details</a> |
+                    <a asp-action="Edit" asp-route-id="@item.SubscriptionId">Edit</a> |
+                    <a asp-action="Delete" asp-route-id="@item.SubscriptionId">Delete</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

@@ -1,0 +1,29 @@
+﻿
+@model SMS.Application.ResidentDto
+
+@{
+    ViewData["Title"] = "Delete Resident";
+}
+
+<h2>Deactivate Resident</h2>
+
+<p>Are you sure you want to deactivate this resident?</p>
+
+<dl class="row">
+    <dt class="col-sm-3">Resident ID</dt>
+    <dd class="col-sm-9">@Model.ResidentId</dd>
+
+    <dt class="col-sm-3">User ID</dt>
+    <dd class="col-sm-9">@Model.UserId</dd>
+
+    <dt class="col-sm-3">Flat ID</dt>
+    <dd class="col-sm-9">@Model.FlatId</dd>
+
+    <dt class="col-sm-3">Resident Type</dt>
+    <dd class="col-sm-9">@Model.ResidentType</dd>
+</dl>
+
+<form asp-action="Delete" asp-route-id="@Model.ResidentId" method="post">
+    <button type="submit" class="btn btn-danger">Deactivate</button>
+    <a asp-action="Index" class="btn btn-secondary">Cancel</a>
+</form>

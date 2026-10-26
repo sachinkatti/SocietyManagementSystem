@@ -1,0 +1,48 @@
+﻿@model IEnumerable<SMS.Application.AmenityBookingDto>
+
+<h2>Amenity Bookings</h2>
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success">@TempData["Success"]</div>
+}
+
+<p>
+    <a asp-action="Create" class="btn btn-primary">Add Booking</a>
+</p>
+
+<table class="table table-bordered table-striped">
+    <thead>
+        <tr>
+            <th>Booking ID</th>
+            <th>Amenity</th>
+            <th>Flat</th>
+            <th>Slot Date</th>
+            <th>Slot Time</th>
+            <th>Deposit Paid</th>
+            <th>Status</th>
+            <th>Tenant ID</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>@item.BookingId</td>
+                <td>@item.AmenityName</td>
+                <td>@item.FlatNumber</td>
+                <td>@item.SlotDate.ToString("dd-MM-yyyy")</td>
+                <td>@item.SlotTime</td>
+                <td>@item.DepositPaid.ToString("0.00")</td>
+                <td>@item.Status</td>
+                <td>@item.TenantId</td>
+                <td>
+                    <a asp-action="Details" asp-route-id="@item.BookingId">Details</a> |
+                    <a asp-action="Edit" asp-route-id="@item.BookingId">Edit</a> |
+                    <a asp-action="Delete" asp-route-id="@item.BookingId">Delete</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

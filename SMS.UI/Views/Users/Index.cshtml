@@ -1,0 +1,77 @@
+﻿@model IEnumerable<SMS.Application.UserDto>
+
+@{
+    ViewData["Title"] = "Users";
+}
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2>Users</h2>
+        <a asp-action="Create" class="btn btn-primary">Create User</a>
+    </div>
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success">@TempData["SuccessMessage"]</div>
+    }
+
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger">@TempData["ErrorMessage"]</div>
+    }
+
+    <div class="table-responsive">
+        <table class="table table-bordered table-striped align-middle">
+            <thead class="table-dark">
+                <tr>
+                    <th>ID</th>
+                    <th>Tenant ID</th>
+                    <th>Full Name</th>
+                    <th>Email</th>
+                    <th>Phone</th>
+                    <th>Active</th>
+                    <th style="min-width: 230px;">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model.Any())
+                {
+                    @foreach (var user in Model)
+                    {
+                        <tr>
+                            <td>@user.UserId</td>
+                            <td>@user.TenantId</td>
+                            <td>@user.FullName</td>
+                            <td>@user.Email</td>
+                            <td>@user.PhoneNumber</td>
+                            <td>
+                                @if (user.IsActive)
+                                {
+                                    <span class="badge bg-success">Active</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-secondary">Inactive</span>
+                                }
+                            </td>
+                            <td>
+                                <a asp-action="Details" asp-route-id="@user.UserId"
+                                   class="btn btn-sm btn-info">Details</a>
+                                <a asp-action="Edit" asp-route-id="@user.UserId"
+                                   class="btn btn-sm btn-warning">Edit</a>
+                                <a asp-action="Delete" asp-route-id="@user.UserId"
+                                   class="btn btn-sm btn-danger">Delete</a>
+                            </td>
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="7" class="text-center">No users found.</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

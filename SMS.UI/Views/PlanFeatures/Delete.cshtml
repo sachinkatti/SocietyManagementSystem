@@ -1,0 +1,27 @@
+﻿@model SMS.Application.PlanFeatureDto
+
+@{
+    ViewData["Title"] = "Delete Plan Feature";
+}
+
+<h2>Delete Plan Feature Mapping</h2>
+
+<div class="alert alert-warning">
+    Are you sure you want to remove this feature from the selected plan?
+</div>
+
+<dl class="row">
+    <dt class="col-sm-3">Plan</dt>
+    <dd class="col-sm-9">@Model.PlanName</dd>
+
+    <dt class="col-sm-3">Feature</dt>
+    <dd class="col-sm-9">@Model.FeatureName</dd>
+
+    <dt class="col-sm-3">Feature Value</dt>
+    <dd class="col-sm-9">@Model.FeatureValue</dd>
+</dl>
+
+<form asp-action="Delete" asp-route-id="@Model.PlanFeatureId" method="post">
+    <button type="submit" class="btn btn-danger">Confirm Delete</button>
+    <a asp-action="Index" class="btn btn-secondary">Cancel</a>
+</form>

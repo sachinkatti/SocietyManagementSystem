@@ -1,0 +1,55 @@
+﻿@model SMS.Application.PlanDto
+
+@{
+    ViewData["Title"] = "Create Plan";
+}
+
+<h2>Create Plan</h2>
+
+<form asp-action="Create" method="post">
+    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+    <div class="mb-3">
+        <label asp-for="PlanName" class="form-label"></label>
+        <input asp-for="PlanName" class="form-control" />
+        <span asp-validation-for="PlanName" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="PlanCode" class="form-label"></label>
+        <input asp-for="PlanCode" class="form-control" />
+        <span asp-validation-for="PlanCode" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="BillingCycle" class="form-label"></label>
+        <select asp-for="BillingCycle" class="form-select">
+            <option value="">Select Billing Cycle</option>
+            <option value="Monthly">Monthly</option>
+            <option value="Quarterly">Quarterly</option>
+            <option value="Yearly">Yearly</option>
+            <option value="OneTime">One Time</option>
+        </select>
+        <span asp-validation-for="BillingCycle" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="Price" class="form-label"></label>
+        <input asp-for="Price" type="number" step="0.01" min="0.01"
+               class="form-control" />
+        <span asp-validation-for="Price" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="Description" class="form-label"></label>
+        <textarea asp-for="Description" class="form-control"></textarea>
+        <span asp-validation-for="Description" class="text-danger"></span>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Save</button>
+    <a asp-action="Index" class="btn btn-secondary">Back</a>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

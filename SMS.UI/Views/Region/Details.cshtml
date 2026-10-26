@@ -1,0 +1,41 @@
+﻿@model SMS.Application.RegionDto
+
+@{
+    ViewData["Title"] = "Region Details";
+}
+
+<h2>Region Details</h2>
+
+<div>
+    <dl class="row">
+        <dt class="col-sm-3">Region Id</dt>
+        <dd class="col-sm-9">@Model.RegionId</dd>
+
+        <dt class="col-sm-3">Region Name</dt>
+        <dd class="col-sm-9">@Model.RegionName</dd>
+
+        <dt class="col-sm-3">Region Code</dt>
+        <dd class="col-sm-9">@Model.RegionCode</dd>
+
+        <dt class="col-sm-3">Description</dt>
+        <dd class="col-sm-9">@Model.Description</dd>
+
+        <dt class="col-sm-3">Active</dt>
+        <dd class="col-sm-9">@Model.IsActive</dd>
+
+        <dt class="col-sm-3">Created On</dt>
+        <dd class="col-sm-9">@Model.CreatedOn</dd>
+
+        <dt class="col-sm-3">Created By</dt>
+        <dd class="col-sm-9">@Model.CreatedBy</dd>
+
+        <dt class="col-sm-3">Modified On</dt>
+        <dd class="col-sm-9">@Model.ModifyOn</dd>
+
+        <dt class="col-sm-3">Modified By</dt>
+        <dd class="col-sm-9">@Model.ModifyBy</dd>
+    </dl>
+</div>
+
+<a asp-action="Edit" asp-route-id="@Model.RegionId" class="btn btn-warning">Edit</a>
+<a asp-action="Index" class="btn btn-secondary">Back</a>

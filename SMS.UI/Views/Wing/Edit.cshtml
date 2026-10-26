@@ -1,0 +1,60 @@
+﻿@model SMS.Application.WingDto
+
+@{
+    ViewData["Title"] = "Edit Wing";
+}
+
+<div class="container mt-4">
+    <h2>Edit Wing</h2>
+    <hr />
+
+    <form asp-action="Edit" asp-route-id="@Model.WingId" method="post">
+        @Html.AntiForgeryToken()
+
+        <input type="hidden" asp-for="WingId" />
+
+        <div asp-validation-summary="ModelOnly"
+             class="text-danger mb-3"></div>
+
+        <div class="mb-3">
+            <label asp-for="TenantId" class="form-label">Tenant</label>
+            <select asp-for="TenantId"
+                    asp-items="ViewBag.Tenants"
+                    class="form-select">
+                <option value="">-- Select Tenant --</option>
+            </select>
+            <span asp-validation-for="TenantId"
+                  class="text-danger"></span>
+        </div>
+
+        <div class="mb-3">
+            <label asp-for="WingName" class="form-label"></label>
+            <input asp-for="WingName" class="form-control" />
+            <span asp-validation-for="WingName"
+                  class="text-danger"></span>
+        </div>
+
+        <div class="mb-3">
+            <label asp-for="TotalFloors" class="form-label"></label>
+            <input asp-for="TotalFloors" type="number" min="1"
+                   class="form-control" />
+            <span asp-validation-for="TotalFloors"
+                  class="text-danger"></span>
+        </div>
+
+        <div class="mb-3">
+            <label asp-for="Description" class="form-label"></label>
+            <textarea asp-for="Description" class="form-control"
+                      rows="3"></textarea>
+            <span asp-validation-for="Description"
+                  class="text-danger"></span>
+        </div>
+
+        <button type="submit" class="btn btn-success">Update</button>
+        <a asp-action="Index" class="btn btn-secondary">Cancel</a>
+    </form>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

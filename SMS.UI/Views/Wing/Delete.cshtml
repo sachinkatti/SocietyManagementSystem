@@ -1,0 +1,43 @@
+﻿@model SMS.Application.WingDto
+
+@{
+    ViewData["Title"] = "Delete Wing";
+}
+
+<div class="container mt-4">
+    <h2>Deactivate Wing</h2>
+    <hr />
+
+    <div class="alert alert-warning">
+        Are you sure you want to deactivate this wing?
+        The record will remain in the database, but it will no longer
+        appear in the active wings list.
+    </div>
+
+    <dl class="row">
+        <dt class="col-sm-3">Wing ID</dt>
+        <dd class="col-sm-9">@Model.WingId</dd>
+
+        <dt class="col-sm-3">Tenant ID</dt>
+        <dd class="col-sm-9">@Model.TenantId</dd>
+
+        <dt class="col-sm-3">Wing Name</dt>
+        <dd class="col-sm-9">@Model.WingName</dd>
+
+        <dt class="col-sm-3">Total Floors</dt>
+        <dd class="col-sm-9">@Model.TotalFloors</dd>
+
+        <dt class="col-sm-3">Description</dt>
+        <dd class="col-sm-9">@(Model.Description ?? "N/A")</dd>
+    </dl>
+
+    <form asp-action="Delete" asp-route-id="@Model.WingId" method="post">
+        @Html.AntiForgeryToken()
+
+        <button type="submit" class="btn btn-danger">
+            Confirm Deactivation
+        </button>
+
+        <a asp-action="Index" class="btn btn-secondary">Cancel</a>
+    </form>
+</div>

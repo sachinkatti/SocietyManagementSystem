@@ -1,0 +1,31 @@
+﻿@model SMS.Application.ExpenseLedgerDto
+
+@{
+    ViewData["Title"] = "Delete Expense Entry";
+}
+
+<h2>Delete Expense Entry</h2>
+
+<p>Are you sure you want to delete this expense ledger entry?</p>
+
+<dl class="row">
+    <dt class="col-sm-3">Ledger ID</dt>
+    <dd class="col-sm-9">@Model.LedgerId</dd>
+
+    <dt class="col-sm-3">Entry Type</dt>
+    <dd class="col-sm-9">@Model.EntryType</dd>
+
+    <dt class="col-sm-3">Category</dt>
+    <dd class="col-sm-9">@Model.Category</dd>
+
+    <dt class="col-sm-3">Amount</dt>
+    <dd class="col-sm-9">@Model.Amount.ToString("N2")</dd>
+
+    <dt class="col-sm-3">Entry Date</dt>
+    <dd class="col-sm-9">@Model.EntryDate.ToString("dd-MM-yyyy")</dd>
+</dl>
+
+<form asp-action="Delete" asp-route-id="@Model.LedgerId" method="post">
+    <button type="submit" class="btn btn-danger">Confirm Delete</button>
+    <a asp-action="Index" class="btn btn-secondary">Cancel</a>
+</form>

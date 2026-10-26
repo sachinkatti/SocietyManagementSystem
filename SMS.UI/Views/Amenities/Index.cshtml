@@ -1,0 +1,44 @@
+﻿@model IEnumerable<SMS.Application.AmenityDto>
+
+<h2>Amenities</h2>
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success">@TempData["Success"]</div>
+}
+
+<p>
+    <a asp-action="Create" class="btn btn-primary">Add Amenity</a>
+</p>
+
+<table class="table table-bordered table-striped">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Name</th>
+            <th>Deposit Required</th>
+            <th>Max Slot Hours</th>
+            <th>Description</th>
+            <th>Tenant ID</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>@item.AmenityId</td>
+                <td>@item.Name</td>
+                <td>@item.DepositRequired.ToString("0.00")</td>
+                <td>@item.MaxSlotHours</td>
+                <td>@item.Description</td>
+                <td>@item.TenantId</td>
+                <td>
+                    <a asp-action="Details" asp-route-id="@item.AmenityId">Details</a> |
+                    <a asp-action="Edit" asp-route-id="@item.AmenityId">Edit</a> |
+                    <a asp-action="Delete" asp-route-id="@item.AmenityId">Delete</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

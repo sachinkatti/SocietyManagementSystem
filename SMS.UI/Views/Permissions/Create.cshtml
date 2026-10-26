@@ -1,0 +1,40 @@
+﻿@model SMS.Application.PermissionDto
+
+@{
+    ViewData["Title"] = "Create Permission";
+}
+
+<div class="container mt-4">
+    <h2>Create Permission</h2>
+
+    <form asp-action="Create" method="post">
+        @Html.AntiForgeryToken()
+
+        <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+        <div class="mb-3">
+            <label asp-for="PermissionName" class="form-label"></label>
+            <input asp-for="PermissionName" class="form-control" />
+            <span asp-validation-for="PermissionName" class="text-danger"></span>
+        </div>
+
+        <div class="mb-3">
+            <label asp-for="PermissionCode" class="form-label"></label>
+            <input asp-for="PermissionCode" class="form-control" />
+            <span asp-validation-for="PermissionCode" class="text-danger"></span>
+        </div>
+
+        <div class="mb-3">
+            <label asp-for="Description" class="form-label"></label>
+            <textarea asp-for="Description" class="form-control"></textarea>
+            <span asp-validation-for="Description" class="text-danger"></span>
+        </div>
+
+        <button type="submit" class="btn btn-primary">Save</button>
+        <a asp-action="Index" class="btn btn-secondary">Back</a>
+    </form>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

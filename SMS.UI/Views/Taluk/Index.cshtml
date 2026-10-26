@@ -1,0 +1,55 @@
+﻿@model IEnumerable<SMS.Application.TalukDto>
+
+@{
+    ViewData["Title"] = "Taluks";
+}
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2>Taluks</h2>
+        <a asp-action="Create" class="btn btn-primary">Add Taluk</a>
+    </div>
+
+    <table class="table table-bordered table-striped">
+        <thead>
+            <tr>
+                <th>Taluk Name</th>
+                <th>Taluk Code</th>
+                <th>District</th>
+                <th>Status</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+
+        <tbody>
+            @foreach (var item in Model)
+            {
+                <tr>
+                    <td>@item.TalukName</td>
+                    <td>@item.TalukCode</td>
+                    <td>@item.DistrictName</td>
+                    <td>@(item.IsActive ? "Active" : "Inactive")</td>
+                    <td>
+                        <a asp-action="Details"
+                               asp-route-id="@item.TalukId"
+                               class="btn btn-info btn-sm">
+                            Details
+                        </a>
+
+                        <a asp-action="Edit"
+                               asp-route-id="@item.TalukId"
+                               class="btn btn-warning btn-sm">
+                            Edit
+                        </a>
+
+                        <a asp-action="Delete"
+                               asp-route-id="@item.TalukId"
+                               class="btn btn-danger btn-sm">
+                            Delete
+                        </a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>

@@ -1,0 +1,63 @@
+﻿@model SMS.Application.AmenityBookingDto
+
+<h2>Edit Amenity Booking</h2>
+
+<form asp-action="Edit" asp-route-id="@Model.BookingId" method="post">
+    @Html.AntiForgeryToken()
+
+    <input asp-for="BookingId" type="hidden" />
+    <input asp-for="TenantId" type="hidden" />
+
+    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+    <div class="mb-3">
+        <label asp-for="AmenityId" class="form-label">Amenity</label>
+        <select asp-for="AmenityId" asp-items="ViewBag.Amenities" class="form-select">
+            <option value="">Select Amenity</option>
+        </select>
+        <span asp-validation-for="AmenityId" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="FlatId" class="form-label">Flat</label>
+        <select asp-for="FlatId" asp-items="ViewBag.Flats" class="form-select">
+            <option value="">Select Flat</option>
+        </select>
+        <span asp-validation-for="FlatId" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="SlotDate" class="form-label">Slot Date</label>
+        <input asp-for="SlotDate" type="date" asp-format="{0:yyyy-MM-dd}" class="form-control" required />
+        <span asp-validation-for="SlotDate" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="SlotTime" class="form-label">Slot Time</label>
+        <input asp-for="SlotTime" class="form-control" maxlength="20" required />
+        <span asp-validation-for="SlotTime" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="DepositPaid" class="form-label">Deposit Paid</label>
+        <input asp-for="DepositPaid" type="number" step="0.01" min="0" class="form-control" required />
+        <span asp-validation-for="DepositPaid" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="Status" class="form-label">Status</label>
+        <select asp-for="Status" asp-items="ViewBag.Statuses" class="form-select">
+            <option value="">Select Status</option>
+        </select>
+        <span asp-validation-for="Status" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="Description" class="form-label"></label>
+        <textarea asp-for="Description" class="form-control" maxlength="500"></textarea>
+        <span asp-validation-for="Description" class="text-danger"></span>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Update Booking</button>
+    <a asp-action="Index" class="btn btn-secondary">Back</a>
+</form>

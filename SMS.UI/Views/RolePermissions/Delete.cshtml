@@ -1,0 +1,39 @@
+﻿@model SMS.Application.RolePermissionDto
+
+@{
+    ViewData["Title"] = "Remove Permission";
+}
+
+<div class="container mt-4">
+    <h2>Remove Permission from Role</h2>
+
+    <div class="alert alert-warning">
+        Are you sure you want to remove this permission assignment?
+    </div>
+
+    <dl class="row">
+        <dt class="col-sm-3">Role Name</dt>
+        <dd class="col-sm-9">@Model.RoleName</dd>
+
+        <dt class="col-sm-3">Permission Name</dt>
+        <dd class="col-sm-9">@Model.PermissionName</dd>
+
+        <dt class="col-sm-3">Permission Code</dt>
+        <dd class="col-sm-9">@Model.PermissionCode</dd>
+
+        <dt class="col-sm-3">Description</dt>
+        <dd class="col-sm-9">@Model.Description</dd>
+    </dl>
+
+    <form asp-action="Delete"
+          asp-route-id="@Model.RolePermissionId"
+          method="post">
+        @Html.AntiForgeryToken()
+
+        <button type="submit" class="btn btn-danger">
+            Confirm Removal
+        </button>
+
+        <a asp-action="Index" class="btn btn-secondary">Cancel</a>
+    </form>
+</div>

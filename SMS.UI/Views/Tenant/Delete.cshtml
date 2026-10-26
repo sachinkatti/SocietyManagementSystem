@@ -1,0 +1,40 @@
+﻿@model SMS.Application.TenantDto
+
+@{
+    ViewData["Title"] = "Delete Tenant";
+}
+
+<h2>Delete Tenant</h2>
+
+<div class="alert alert-warning">
+    Are you sure you want to deactivate this tenant?
+    The record will remain in the database.
+</div>
+
+<dl class="row">
+    <dt class="col-sm-3">Tenant ID</dt>
+    <dd class="col-sm-9">@Model.TenantId</dd>
+
+    <dt class="col-sm-3">Tenant Name</dt>
+    <dd class="col-sm-9">@Model.TenantName</dd>
+
+    <dt class="col-sm-3">Tenant Code</dt>
+    <dd class="col-sm-9">@Model.TenantCode</dd>
+
+    <dt class="col-sm-3">Email</dt>
+    <dd class="col-sm-9">@Model.Email</dd>
+
+    <dt class="col-sm-3">Phone Number</dt>
+    <dd class="col-sm-9">@Model.PhoneNumber</dd>
+</dl>
+
+<form asp-action="Delete"
+      asp-route-id="@Model.TenantId"
+      method="post">
+
+    <button type="submit" class="btn btn-danger">
+        Confirm Deactivation
+    </button>
+
+    <a asp-action="Index" class="btn btn-secondary">Cancel</a>
+</form>

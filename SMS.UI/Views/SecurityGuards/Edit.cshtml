@@ -1,0 +1,46 @@
+﻿@model SMS.Application.SecurityGuardDto
+
+@{
+    ViewData["Title"] = "Edit Security Guard";
+}
+
+<h2>Edit Security Guard</h2>
+
+<form asp-action="Edit" asp-route-id="@Model.GuardId" method="post">
+    <input asp-for="GuardId" type="hidden" />
+
+    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+    <div class="mb-3">
+        <label asp-for="UserId" class="form-label">User</label>
+        <select asp-for="UserId" asp-items="ViewBag.Users" class="form-select">
+            <option value="">Select User</option>
+        </select>
+        <span asp-validation-for="UserId" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="ShiftTiming" class="form-label"></label>
+        <input asp-for="ShiftTiming" class="form-control" maxlength="50" />
+        <span asp-validation-for="ShiftTiming" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="AssignedGate" class="form-label"></label>
+        <input asp-for="AssignedGate" class="form-control" maxlength="50" />
+        <span asp-validation-for="AssignedGate" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="JoiningDate" type="date" class="form-label"></label>
+        <input asp-for="JoiningDate" type="date" class="form-control" />
+        <span asp-validation-for="JoiningDate" class="text-danger"></span>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Update</button>
+    <a asp-action="Index" class="btn btn-secondary">Cancel</a>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

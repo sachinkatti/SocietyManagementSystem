@@ -1,0 +1,65 @@
+﻿@model SMS.Application.ExpenseLedgerDto
+
+@{
+    ViewData["Title"] = "Create Expense Entry";
+}
+
+<h2>Create Expense Entry</h2>
+
+<form asp-action="Create" method="post">
+    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+    <div class="mb-3">
+        <label asp-for="EntryType" class="form-label"></label>
+        <select asp-for="EntryType" class="form-select">
+            <option value="">Select Entry Type</option>
+            <option value="Income">Income</option>
+            <option value="Expense">Expense</option>
+        </select>
+        <span asp-validation-for="EntryType" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="Category" class="form-label"></label>
+        <input asp-for="Category" class="form-control" maxlength="50" />
+        <span asp-validation-for="Category" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="Amount" class="form-label"></label>
+        <input asp-for="Amount" type="number" step="0.01" min="0.01" class="form-control" />
+        <span asp-validation-for="Amount" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="Description" class="form-label"></label>
+        <textarea asp-for="Description" class="form-control" maxlength="250"></textarea>
+        <span asp-validation-for="Description" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="EntryDate" class="form-label"></label>
+        <input asp-for="EntryDate" type="date" class="form-control"
+               value="@Model.EntryDate.ToString("yyyy-MM-dd")" />
+        <span asp-validation-for="EntryDate" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="RecordedByAdminId" class="form-label">Recorded By Admin ID</label>
+        <input asp-for="RecordedByAdminId" type="number" min="1" class="form-control" />
+        <span asp-validation-for="RecordedByAdminId" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="TenantId" class="form-label"></label>
+        <input asp-for="TenantId" type="number" min="1" class="form-control" />
+        <span asp-validation-for="TenantId" class="text-danger"></span>
+    </div>
+
+    <button type="submit" class="btn btn-success">Save</button>
+    <a asp-action="Index" class="btn btn-secondary">Back</a>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

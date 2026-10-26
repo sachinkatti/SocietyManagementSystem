@@ -1,0 +1,32 @@
+﻿@model SMS.Application.StaffAttendanceDto
+
+<h2>Attendance Details</h2>
+
+<dl class="row">
+    <dt class="col-sm-3">Attendance ID</dt>
+    <dd class="col-sm-9">@Model.AttendanceId</dd>
+
+    <dt class="col-sm-3">Staff Name</dt>
+    <dd class="col-sm-9">@Model.StaffName</dd>
+
+    <dt class="col-sm-3">Staff Role</dt>
+    <dd class="col-sm-9">@Model.StaffRole</dd>
+
+    <dt class="col-sm-3">Flat ID</dt>
+    <dd class="col-sm-9">@Model.FlatId</dd>
+
+    <dt class="col-sm-3">Check-In Time</dt>
+    <dd class="col-sm-9">@Model.CheckInTime.ToString("dd-MM-yyyy HH:mm")</dd>
+
+    <dt class="col-sm-3">Check-Out Time</dt>
+    <dd class="col-sm-9">@(Model.CheckOutTime?.ToString("dd-MM-yyyy HH:mm") ?? "Not checked out")</dd>
+
+    <dt class="col-sm-3">Tenant ID</dt>
+    <dd class="col-sm-9">@Model.TenantId</dd>
+
+    <dt class="col-sm-3">Created On</dt>
+    <dd class="col-sm-9">@Model.CreatedOn</dd>
+</dl>
+
+<a asp-action="Edit" asp-route-id="@Model.AttendanceId" class="btn btn-primary">Edit</a>
+<a asp-action="Index" class="btn btn-secondary">Back</a>

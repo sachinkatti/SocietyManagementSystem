@@ -1,0 +1,53 @@
+﻿@model SMS.Application.ResidentDto
+
+@{
+    ViewData["Title"] = "Edit Resident";
+}
+
+<h2>Edit Resident</h2>
+
+<form asp-action="Edit" asp-route-id="@Model.ResidentId" method="post">
+    <input asp-for="ResidentId" type="hidden" />
+    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+    <div class="mb-3">
+        <label asp-for="UserId" class="form-label"></label>
+        <input asp-for="UserId" class="form-control" type="number" min="1" />
+        <span asp-validation-for="UserId" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="FlatId" class="form-label"></label>
+        <input asp-for="FlatId" class="form-control" type="number" min="1" />
+        <span asp-validation-for="FlatId" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="ResidentType" class="form-label"></label>
+        <select asp-for="ResidentType" class="form-select">
+            <option value="Owner">Owner</option>
+            <option value="Tenant">Tenant</option>
+            <option value="FamilyMember">Family Member</option>
+        </select>
+        <span asp-validation-for="ResidentType" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="MoveInDate" class="form-label"></label>
+        <input asp-for="MoveInDate" class="form-control" type="date" />
+        <span asp-validation-for="MoveInDate" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="EmergencyContact" class="form-label"></label>
+        <input asp-for="EmergencyContact" class="form-control" maxlength="15" />
+        <span asp-validation-for="EmergencyContact" class="text-danger"></span>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Update</button>
+    <a asp-action="Index" class="btn btn-secondary">Cancel</a>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

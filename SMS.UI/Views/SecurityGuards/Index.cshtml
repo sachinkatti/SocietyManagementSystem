@@ -1,0 +1,44 @@
+﻿@model IEnumerable<SMS.Application.SecurityGuardDto>
+
+@{
+    ViewData["Title"] = "Security Guards";
+}
+
+<h2>Security Guards</h2>
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success">@TempData["SuccessMessage"]</div>
+}
+
+<p>
+    <a asp-action="Create" class="btn btn-primary">Add Security Guard</a>
+</p>
+
+<table class="table table-bordered table-striped">
+    <thead>
+        <tr>
+            <th>User Name</th>
+            <th>Shift Timing</th>
+            <th>Assigned Gate</th>
+            <th>Joining Date</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var guard in Model)
+        {
+            <tr>
+                <td>@guard.UserFullName</td>
+                <td>@guard.ShiftTiming</td>
+                <td>@guard.AssignedGate</td>
+                <td>@guard.JoiningDate.ToString("yyyy-MM-dd")</td>
+                <td>
+                    <a asp-action="Details" asp-route-id="@guard.GuardId">Details</a> |
+                    <a asp-action="Edit" asp-route-id="@guard.GuardId">Edit</a> |
+                    <a asp-action="Delete" asp-route-id="@guard.GuardId">Deactivate</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

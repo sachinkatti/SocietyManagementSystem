@@ -1,0 +1,44 @@
+﻿@model SMS.Application.MaintenanceBillDto
+
+<h2>Maintenance Bill Details</h2>
+
+<dl class="row">
+    <dt class="col-sm-3">Bill ID</dt>
+    <dd class="col-sm-9">@Model.BillId</dd>
+
+    <dt class="col-sm-3">Flat ID</dt>
+    <dd class="col-sm-9">@Model.FlatId</dd>
+
+    <dt class="col-sm-3">Billing Period</dt>
+    <dd class="col-sm-9">@Model.BillingMonth / @Model.BillingYear</dd>
+
+    <dt class="col-sm-3">Base Amount</dt>
+    <dd class="col-sm-9">@Model.BaseAmount.ToString("N2")</dd>
+
+    <dt class="col-sm-3">Penalty Amount</dt>
+    <dd class="col-sm-9">@Model.PenaltyAmount.ToString("N2")</dd>
+
+    <dt class="col-sm-3">Total Amount</dt>
+    <dd class="col-sm-9">@Model.TotalAmount.ToString("N2")</dd>
+
+    <dt class="col-sm-3">Due Date</dt>
+    <dd class="col-sm-9">@Model.DueDate.ToString("dd-MM-yyyy")</dd>
+
+    <dt class="col-sm-3">Payment Status</dt>
+    <dd class="col-sm-9">@Model.PaymentStatus</dd>
+
+    <dt class="col-sm-3">Payment Date</dt>
+    <dd class="col-sm-9">@(Model.PaymentDate?.ToString("dd-MM-yyyy") ?? "Not paid")</dd>
+
+    <dt class="col-sm-3">Transaction Reference</dt>
+    <dd class="col-sm-9">@Model.TransactionRef</dd>
+
+    <dt class="col-sm-3">Description</dt>
+    <dd class="col-sm-9">@Model.Description</dd>
+
+    <dt class="col-sm-3">Tenant ID</dt>
+    <dd class="col-sm-9">@Model.TenantId</dd>
+</dl>
+
+<a asp-action="Edit" asp-route-id="@Model.BillId" class="btn btn-primary">Edit</a>
+<a asp-action="Index" class="btn btn-secondary">Back</a>

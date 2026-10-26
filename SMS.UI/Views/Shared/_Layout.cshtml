@@ -1,0 +1,215 @@
+﻿@{
+    var currentController = ViewContext.RouteData.Values["controller"]?.ToString() ?? "";
+    var currentAction = ViewContext.RouteData.Values["action"]?.ToString() ?? "";
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - Society Management System</title>
+
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/SMS.UI.styles.css" asp-append-version="true" />
+</head>
+<body>
+    <div class="app-shell">
+
+        <aside class="sidebar offcanvas-lg offcanvas-start" tabindex="-1" id="appSidebar" aria-labelledby="sidebarTitle">
+            <div class="sidebar-brand">
+                <a asp-controller="Home" asp-action="Index" class="brand-link">
+                    <span class="brand-logo">S</span>
+                    <span class="brand-text">
+                        <strong id="sidebarTitle"><span>SocietyHub</span></strong>
+                        <small>Management Portal</small>
+                    </span>
+                </a>
+                <button type="button" class="btn-close d-lg-none" data-bs-dismiss="offcanvas" data-bs-target="#appSidebar" aria-label="Close menu"></button>
+            </div>
+
+            <div class="sidebar-content">
+                <div class="sidebar-caption">MAIN MENU</div>
+
+                <a asp-controller="Home" asp-action="Index"
+                       class="sidebar-link @(currentController == "Home" ? "active" : "")">
+                    <span class="nav-icon">⌂</span>
+                    <span>Dashboard</span>
+                </a>
+
+                <div class="sidebar-caption">GEOGRAPHY & SETUP</div>
+
+                <button class="sidebar-group-button" type="button" data-bs-toggle="collapse" data-bs-target="#geographyMenu" aria-expanded="@(new[] { "Language", "Region", "Country", "State", "District", "Taluk", "City" }.Contains(currentController).ToString().ToLower())">
+                    <span><span class="nav-icon">◎</span> Geography</span>
+                    <span class="group-arrow">⌄</span>
+                </button>
+                <div class="collapse @(new[] { "Language", "Region", "Country", "State", "District", "Taluk", "City" }.Contains(currentController) ? "show" : "")" id="geographyMenu">
+                    <a asp-controller="Language" asp-action="Index" class="sidebar-sublink @(currentController == "Language" ? "active" : "")">Language</a>
+                    <a asp-controller="Region" asp-action="Index" class="sidebar-sublink @(currentController == "Region" ? "active" : "")">Region</a>
+                    <a asp-controller="Country" asp-action="Index" class="sidebar-sublink @(currentController == "Country" ? "active" : "")">Country</a>
+                    <a asp-controller="State" asp-action="Index" class="sidebar-sublink @(currentController == "State" ? "active" : "")">State</a>
+                    <a asp-controller="District" asp-action="Index" class="sidebar-sublink @(currentController == "District" ? "active" : "")">District</a>
+                    <a asp-controller="Taluk" asp-action="Index" class="sidebar-sublink @(currentController == "Taluk" ? "active" : "")">Taluk</a>
+                    <a asp-controller="City" asp-action="Index" class="sidebar-sublink @(currentController == "City" ? "active" : "")">City</a>
+                </div>
+
+                <a asp-controller="Tenant" asp-action="Index" class="sidebar-link @(currentController == "Tenant" ? "active" : "")">
+                    <span class="nav-icon">▦</span><span>Tenants</span>
+                </a>
+
+                <div class="sidebar-caption">ACCESS CONTROL</div>
+
+                <a asp-controller="Users" asp-action="Index" class="sidebar-link @(currentController == "User" ? "active" : "")">
+                    <span class="nav-icon">♙</span><span>Users</span>
+                </a>
+                <a asp-controller="Roles" asp-action="Index" class="sidebar-link @(currentController == "Role" ? "active" : "")">
+                    <span class="nav-icon">♧</span><span>Roles</span>
+                </a>
+                <a asp-controller="Permissions" asp-action="Index" class="sidebar-link @(currentController == "Permissions" ? "active" : "")">
+                    <span class="nav-icon">✓</span><span>Permissions</span>
+                </a>
+                <a asp-controller="RolePermissions" asp-action="Index" class="sidebar-link @(currentController == "RolePermissions" ? "active" : "")">
+                    <span class="nav-icon">⇄</span><span>Role Permissions</span>
+                </a>
+                <a asp-controller="UserRoles" asp-action="Index" class="sidebar-link @(currentController == "UserRoles" ? "active" : "")">
+                    <span class="nav-icon">♙</span><span>User Roles</span>
+                </a>
+
+                <div class="sidebar-caption">SOCIETY MANAGEMENT</div>
+
+                <a asp-controller="Admin" asp-action="Index" class="sidebar-link @(currentController == "Admins" ? "active" : "")">
+                    <span class="nav-icon">♔</span><span>Admins</span>
+                    <span class="nav-badge">Next</span>
+                </a>
+                <a asp-controller="Wing" asp-action="Index" class="sidebar-link @(currentController == "Wings" ? "active" : "")">
+                    <span class="nav-icon">▤</span><span>Wings</span>
+                </a>
+                <a asp-controller="Flats" asp-action="Index" class="sidebar-link @(currentController == "Flats" ? "active" : "")">
+                    <span class="nav-icon">⌂</span><span>Flats</span>
+                </a>
+                <a asp-controller="Residents" asp-action="Index" class="sidebar-link @(currentController == "Residents" ? "active" : "")">
+                    <span class="nav-icon">♙</span><span>Residents</span>
+                </a>
+                <a asp-controller="SecurityGuards" asp-action="Index" class="sidebar-link @(currentController == "SecurityGuards" ? "active" : "")">
+                    <span class="nav-icon">⛨</span><span>Security Guards</span>
+                </a>
+                <a asp-controller="VehicleRegistry" asp-action="Index" class="sidebar-link @(currentController == "VehicleRegistry" ? "active" : "")">
+                    <span class="nav-icon">▰</span><span>Vehicle Registry</span>
+                </a>
+
+                <div class="sidebar-caption">OPERATIONS</div>
+
+                <a asp-controller="Amenities" asp-action="Index" class="sidebar-link @(currentController == "Amenities" ? "active" : "")">
+                    <span class="nav-icon">◇</span><span>Amenities</span>
+                </a>
+                <a asp-controller="AmenityBookings" asp-action="Index" class="sidebar-link @(currentController == "AmenityBookings" ? "active" : "")">
+                    <span class="nav-icon">▣</span><span>Amenity Bookings</span>
+                </a>
+                <a asp-controller="VisitorLogs" asp-action="Index" class="sidebar-link @(currentController == "VisitorLogs" ? "active" : "")">
+                    <span class="nav-icon">⇥</span><span>Visitor Logs</span>
+                </a>
+                <a asp-controller="Complaints" asp-action="Index" class="sidebar-link @(currentController == "Complaints" ? "active" : "")">
+                    <span class="nav-icon">☷</span><span>Complaints</span>
+                </a>
+                <a asp-controller="Notices" asp-action="Index" class="sidebar-link @(currentController == "Notices" ? "active" : "")">
+                    <span class="nav-icon">▤</span><span>Notices</span>
+                </a>
+                <a asp-controller="StaffAttendance" asp-action="Index" class="sidebar-link @(currentController == "StaffAttendance" ? "active" : "")">
+                    <span class="nav-icon">◷</span><span>Staff Attendance</span>
+                </a>
+
+                <div class="sidebar-caption">FINANCE</div>
+
+                <a asp-controller="MaintenanceBills" asp-action="Index" class="sidebar-link @(currentController == "MaintenanceBills" ? "active" : "")">
+                    <span class="nav-icon">₹</span><span>Maintenance Bills</span>
+                </a>
+                <a asp-controller="ExpenseLedger" asp-action="Index" class="sidebar-link @(currentController == "ExpenseLedger" ? "active" : "")">
+                    <span class="nav-icon">▥</span><span>Expense Ledger</span>
+                </a>
+
+                <div class="sidebar-caption">SUBSCRIPTION & BILLING</div>
+
+                <a asp-controller="Features" asp-action="Index" class="sidebar-link @(currentController == "Features" ? "active" : "")">
+                    <span class="nav-icon">✧</span><span>Features</span>
+                </a>
+                <a asp-controller="Plans" asp-action="Index" class="sidebar-link @(currentController == "Plans" ? "active" : "")">
+                    <span class="nav-icon">▤</span><span>Plans</span>
+                </a>
+                <a asp-controller="PlanFeatures" asp-action="Index" class="sidebar-link @(currentController == "PlanFeatures" ? "active" : "")">
+                    <span class="nav-icon">⇄</span><span>Plan Features</span>
+                </a>
+                <a asp-controller="TenantSubscriptions" asp-action="Index" class="sidebar-link @(currentController == "TenantSubscriptions" ? "active" : "")">
+                    <span class="nav-icon">◷</span><span>Subscriptions</span>
+                </a>
+                <a asp-controller="Invoices" asp-action="Index" class="sidebar-link @(currentController == "Invoices" ? "active" : "")">
+                    <span class="nav-icon">▧</span><span>Invoices</span>
+                </a>
+            </div>
+
+            <div class="sidebar-footer">
+                <div class="sidebar-footer-icon">S</div>
+                <div>
+                    <strong>Society Admin</strong>
+                    <small>Management Console</small>
+                </div>
+            </div>
+        </aside>
+
+        <div class="main-panel">
+            <header class="topbar">
+                <div class="topbar-left">
+                    <button class="btn sidebar-toggle d-lg-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#appSidebar" aria-controls="appSidebar" aria-label="Open navigation">
+                        <span class="toggle-lines">☰</span>
+                    </button>
+                    <div class="page-heading">
+                        <h1>@(ViewData["Title"] ?? "Dashboard")</h1>
+                        <div class="breadcrumb-text">Society Management <span>/</span> @(ViewData["Title"] ?? "Dashboard")</div>
+                    </div>
+                </div>
+
+                <div class="topbar-right">
+                    <div class="system-status">
+                        <span class="status-dot"></span>
+                        System Online
+                    </div>
+
+                    <div class="profile-avatar">SA</div>
+                    <div class="profile-info">
+                        <strong>@(User.Identity?.Name ?? "Society Admin")</strong>
+                        <small>Administrator</small>
+                    </div>
+
+                    @if (User.Identity?.IsAuthenticated == true)
+                    {
+                        <form asp-controller="Account"
+                              asp-action="Logout"
+                              method="post"
+                              class="ms-3">
+                            @Html.AntiForgeryToken()
+                            <button type="submit" class="btn btn-outline-danger btn-sm">
+                                Logout
+                            </button>
+                        </form>
+                    }
+
+                </div>
+            </header>
+
+            <main class="page-content" role="main">
+                @RenderBody()
+            </main>
+
+            <footer class="app-footer">
+                <span>© @DateTime.Now.Year Society Management System</span>
+                <span>Administration Portal</span>
+            </footer>
+        </div>
+    </div>
+    
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

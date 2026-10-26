@@ -1,0 +1,102 @@
+﻿@model SMS.Application.ComplaintDto
+
+@{
+    ViewData["Title"] = "Add Complaint";
+}
+
+<h2>Add Complaint</h2>
+
+<form asp-action="Create" method="post">
+    @Html.AntiForgeryToken()
+
+    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+    <div class="mb-3">
+        <label asp-for="ResidentId" class="form-label">Resident</label>
+        <select asp-for="ResidentId" asp-items="ViewBag.Residents" class="form-select">
+            <option value="">-- Select Resident --</option>
+        </select>
+        <span asp-validation-for="ResidentId" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="Category" class="form-label"></label>
+        <input asp-for="Category" class="form-control" maxlength="50" />
+        <span asp-validation-for="Category" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="Description" class="form-label"></label>
+        <textarea asp-for="Description" class="form-control" maxlength="500"></textarea>
+        <span asp-validation-for="Description" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="PhotoUrl" class="form-label"></label>
+        <input asp-for="PhotoUrl" class="form-control" maxlength="250" />
+        <span asp-validation-for="PhotoUrl" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="Priority" class="form-label"></label>
+        <select asp-for="Priority" class="form-select">
+            <option value="">-- Select Priority --</option>
+            <option value="Low">Low</option>
+            <option value="Medium">Medium</option>
+            <option value="High">High</option>
+            <option value="Urgent">Urgent</option>
+        </select>
+        <span asp-validation-for="Priority" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="Status" class="form-label"></label>
+        <select asp-for="Status" class="form-select">
+            <option value="">-- Select Status --</option>
+            <option value="Open">Open</option>
+            <option value="InProgress">In Progress</option>
+            <option value="Resolved">Resolved</option>
+            <option value="Closed">Closed</option>
+        </select>
+        <span asp-validation-for="Status" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="DateRaised" class="form-label"></label>
+        <input asp-for="DateRaised" type="datetime-local"
+               asp-format="{0:yyyy-MM-ddTHH:mm}" class="form-control" />
+        <span asp-validation-for="DateRaised" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="DateResolved" class="form-label"></label>
+        <input asp-for="DateResolved" type="datetime-local"
+               asp-format="{0:yyyy-MM-ddTHH:mm}" class="form-control" />
+        <span asp-validation-for="DateResolved" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="ResolutionNotes" class="form-label"></label>
+        <textarea asp-for="ResolutionNotes" class="form-control" maxlength="500"></textarea>
+        <span asp-validation-for="ResolutionNotes" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="ResidentRating" class="form-label"></label>
+        <input asp-for="ResidentRating" type="number" min="1" max="5" class="form-control" />
+        <span asp-validation-for="ResidentRating" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="TenantId" class="form-label">Tenant ID</label>
+        <input asp-for="TenantId" type="number" min="1" class="form-control" />
+        <span asp-validation-for="TenantId" class="text-danger"></span>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Save</button>
+    <a asp-action="Index" class="btn btn-secondary">Cancel</a>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

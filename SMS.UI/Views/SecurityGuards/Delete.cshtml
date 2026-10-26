@@ -1,0 +1,28 @@
+﻿@model SMS.Application.SecurityGuardDto
+
+@{
+    ViewData["Title"] = "Deactivate Security Guard";
+}
+
+<h2>Deactivate Security Guard</h2>
+
+<p>Are you sure you want to deactivate this security guard?</p>
+
+<dl class="row">
+    <dt class="col-sm-3">User Name</dt>
+    <dd class="col-sm-9">@Model.UserFullName</dd>
+
+    <dt class="col-sm-3">Shift Timing</dt>
+    <dd class="col-sm-9">@Model.ShiftTiming</dd>
+
+    <dt class="col-sm-3">Assigned Gate</dt>
+    <dd class="col-sm-9">@Model.AssignedGate</dd>
+
+    <dt class="col-sm-3">Joining Date</dt>
+    <dd class="col-sm-9">@Model.JoiningDate.ToString("yyyy-MM-dd")</dd>
+</dl>
+
+<form asp-action="Delete" asp-route-id="@Model.GuardId" method="post">
+    <button type="submit" class="btn btn-danger">Deactivate</button>
+    <a asp-action="Index" class="btn btn-secondary">Cancel</a>
+</form>

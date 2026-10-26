@@ -1,0 +1,48 @@
+﻿@model IEnumerable<SMS.Application.ResidentDto>
+
+@{
+    ViewData["Title"] = "Residents";
+}
+
+<h2>Residents</h2>
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success">@TempData["SuccessMessage"]</div>
+}
+
+<p>
+    <a asp-action="Create" class="btn btn-primary">Add Resident</a>
+</p>
+
+<table class="table table-bordered table-striped">
+    <thead>
+        <tr>
+            <th>Resident ID</th>
+            <th>User ID</th>
+            <th>Flat ID</th>
+            <th>Resident Type</th>
+            <th>Move In Date</th>
+            <th>Emergency Contact</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var resident in Model)
+        {
+            <tr>
+                <td>@resident.ResidentId</td>
+                <td>@resident.UserId</td>
+                <td>@resident.FlatId</td>
+                <td>@resident.ResidentType</td>
+                <td>@resident.MoveInDate.ToString("yyyy-MM-dd")</td>
+                <td>@resident.EmergencyContact</td>
+                <td>
+                    <a asp-action="Details" asp-route-id="@resident.ResidentId">Details</a> |
+                    <a asp-action="Edit" asp-route-id="@resident.ResidentId">Edit</a> |
+                    <a asp-action="Delete" asp-route-id="@resident.ResidentId">Delete</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

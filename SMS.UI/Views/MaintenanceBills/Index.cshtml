@@ -1,0 +1,45 @@
+﻿@model List<SMS.Application.MaintenanceBillDto>
+
+<h2>Maintenance Bills</h2>
+
+<p>
+    <a asp-action="Create" class="btn btn-primary">Create Bill</a>
+</p>
+
+<table class="table table-bordered table-striped">
+    <thead>
+        <tr>
+            <th>Bill ID</th>
+            <th>Flat ID</th>
+            <th>Billing Month</th>
+            <th>Billing Year</th>
+            <th>Base Amount</th>
+            <th>Penalty</th>
+            <th>Total Amount</th>
+            <th>Due Date</th>
+            <th>Payment Status</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>@item.BillId</td>
+                <td>@item.FlatId</td>
+                <td>@item.BillingMonth</td>
+                <td>@item.BillingYear</td>
+                <td>@item.BaseAmount.ToString("N2")</td>
+                <td>@item.PenaltyAmount.ToString("N2")</td>
+                <td>@item.TotalAmount.ToString("N2")</td>
+                <td>@item.DueDate.ToString("dd-MM-yyyy")</td>
+                <td>@item.PaymentStatus</td>
+                <td>
+                    <a asp-action="Details" asp-route-id="@item.BillId">Details</a> |
+                    <a asp-action="Edit" asp-route-id="@item.BillId">Edit</a> |
+                    <a asp-action="Delete" asp-route-id="@item.BillId">Delete</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

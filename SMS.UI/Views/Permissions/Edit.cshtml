@@ -1,0 +1,47 @@
+﻿@model SMS.Application.PermissionDto
+
+@{
+    ViewData["Title"] = "Edit Permission";
+}
+
+<div class="container mt-4">
+    <h2>Edit Permission</h2>
+
+    <form asp-action="Edit" asp-route-id="@Model.PermissionId" method="post">
+        @Html.AntiForgeryToken()
+
+        <input asp-for="PermissionId" type="hidden" />
+
+        <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+        <div class="mb-3">
+            <label asp-for="PermissionName" class="form-label"></label>
+            <input asp-for="PermissionName" class="form-control" />
+            <span asp-validation-for="PermissionName" class="text-danger"></span>
+        </div>
+
+        <div class="mb-3">
+            <label asp-for="PermissionCode" class="form-label"></label>
+            <input asp-for="PermissionCode" class="form-control" />
+            <span asp-validation-for="PermissionCode" class="text-danger"></span>
+        </div>
+
+        <div class="mb-3">
+            <label asp-for="Description" class="form-label"></label>
+            <textarea asp-for="Description" class="form-control"></textarea>
+            <span asp-validation-for="Description" class="text-danger"></span>
+        </div>
+
+        <div class="form-check mb-3">
+            <input asp-for="IsActive" class="form-check-input" />
+            <label asp-for="IsActive" class="form-check-label">Active</label>
+        </div>
+
+        <button type="submit" class="btn btn-primary">Update</button>
+        <a asp-action="Index" class="btn btn-secondary">Back</a>
+    </form>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

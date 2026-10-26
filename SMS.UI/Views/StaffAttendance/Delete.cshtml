@@ -1,0 +1,22 @@
+﻿@model SMS.Application.StaffAttendanceDto
+
+<h2>Delete Attendance</h2>
+
+<p>Are you sure you want to deactivate this attendance record?</p>
+
+<dl class="row">
+    <dt class="col-sm-3">Staff Name</dt>
+    <dd class="col-sm-9">@Model.StaffName</dd>
+
+    <dt class="col-sm-3">Staff Role</dt>
+    <dd class="col-sm-9">@Model.StaffRole</dd>
+
+    <dt class="col-sm-3">Check-In Time</dt>
+    <dd class="col-sm-9">@Model.CheckInTime.ToString("dd-MM-yyyy HH:mm")</dd>
+</dl>
+
+<form asp-action="Delete" asp-route-id="@Model.AttendanceId" method="post">
+    @Html.AntiForgeryToken()
+    <button type="submit" class="btn btn-danger">Confirm Delete</button>
+    <a asp-action="Index" class="btn btn-secondary">Cancel</a>
+</form>

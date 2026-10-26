@@ -1,0 +1,43 @@
+﻿@model SMS.Application.UserDto
+
+@{
+    ViewData["Title"] = "Deactivate User";
+}
+
+<div class="container mt-4">
+    <h2>Deactivate User</h2>
+    <hr />
+
+    <div class="alert alert-warning">
+        Are you sure you want to deactivate this user?
+        The user record will remain in the database.
+    </div>
+
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <dl class="row">
+                <dt class="col-sm-3">User ID</dt>
+                <dd class="col-sm-9">@Model.UserId</dd>
+
+                <dt class="col-sm-3">Full Name</dt>
+                <dd class="col-sm-9">@Model.FullName</dd>
+
+                <dt class="col-sm-3">Email</dt>
+                <dd class="col-sm-9">@Model.Email</dd>
+
+                <dt class="col-sm-3">Tenant ID</dt>
+                <dd class="col-sm-9">@Model.TenantId</dd>
+            </dl>
+
+            <form asp-action="Delete" asp-route-id="@Model.UserId" method="post">
+                @Html.AntiForgeryToken()
+
+                <button type="submit" class="btn btn-danger">
+                    Confirm Deactivation
+                </button>
+
+                <a asp-action="Index" class="btn btn-secondary">Cancel</a>
+            </form>
+        </div>
+    </div>
+</div>

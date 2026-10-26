@@ -1,0 +1,43 @@
+﻿@model SMS.Application.DistrictDto
+
+@{
+    ViewData["Title"] = "Delete District";
+}
+
+<div class="container mt-4">
+    <h2>Delete District</h2>
+
+    <div class="alert alert-danger">
+        Are you sure you want to delete this district?
+    </div>
+
+    <dl class="row">
+        <dt class="col-sm-3">District Name</dt>
+        <dd class="col-sm-9">@Model.DistrictName</dd>
+
+        <dt class="col-sm-3">District Code</dt>
+        <dd class="col-sm-9">@Model.DistrictCode</dd>
+
+        <dt class="col-sm-3">State</dt>
+        <dd class="col-sm-9">@Model.StateName</dd>
+
+        <dt class="col-sm-3">Description</dt>
+        <dd class="col-sm-9">@Model.Description</dd>
+    </dl>
+
+    <form asp-action="DeleteConfirmed" method="post">
+        <input type="hidden"
+               name="districtId"
+               value="@Model.DistrictId" />
+
+        <button type="submit"
+                class="btn btn-danger">
+            Delete
+        </button>
+
+        <a asp-action="Index"
+               class="btn btn-secondary">
+            Cancel
+        </a>
+    </form>
+</div>

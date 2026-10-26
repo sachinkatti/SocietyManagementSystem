@@ -1,0 +1,56 @@
+﻿@model IEnumerable<SMS.Application.VisitorLogDto>
+
+@{
+    ViewData["Title"] = "Visitor Logs";
+}
+
+<h2>Visitor Logs</h2>
+
+<p>
+    <a asp-action="Create" class="btn btn-primary">Add Visitor</a>
+</p>
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success">@TempData["SuccessMessage"]</div>
+}
+
+<div class="table-responsive">
+    <table class="table table-bordered table-striped">
+        <thead>
+            <tr>
+                <th>Visitor</th>
+                <th>Phone</th>
+                <th>Flat</th>
+                <th>Purpose</th>
+                <th>Vehicle</th>
+                <th>Approval Method</th>
+                <th>Entry Time</th>
+                <th>Exit Time</th>
+                <th>Guard</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model)
+            {
+                <tr>
+                    <td>@item.VisitorName</td>
+                    <td>@item.PhoneNumber</td>
+                    <td>@item.FlatNumber</td>
+                    <td>@item.Purpose</td>
+                    <td>@item.VehicleNumber</td>
+                    <td>@item.ApprovalMethod</td>
+                    <td>@item.EntryTime.ToString("dd-MM-yyyy HH:mm")</td>
+                    <td>@(item.ExitTime?.ToString("dd-MM-yyyy HH:mm") ?? "-")</td>
+                    <td>@item.GuardName</td>
+                    <td>
+                        <a asp-action="Details" asp-route-id="@item.VisitorId">Details</a> |
+                        <a asp-action="Edit" asp-route-id="@item.VisitorId">Edit</a> |
+                        <a asp-action="Delete" asp-route-id="@item.VisitorId">Delete</a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>

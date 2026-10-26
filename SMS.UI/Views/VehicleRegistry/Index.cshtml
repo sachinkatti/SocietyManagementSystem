@@ -1,0 +1,32 @@
+﻿@model IEnumerable<SMS.Application.VehicleRegistryDto>
+
+<h2>Vehicle Registry</h2>
+<a asp-action="Create" class="btn btn-primary mb-3">Add Vehicle</a>
+
+<table class="table table-bordered">
+    <thead>
+        <tr>
+            <th>Flat</th>
+            <th>Vehicle Number</th>
+            <th>Vehicle Type</th>
+            <th>Description</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var v in Model)
+        {
+            <tr>
+                <td>@v.FlatNumber</td>
+                <td>@v.VehicleNumber</td>
+                <td>@v.VehicleType</td>
+                <td>@v.Description</td>
+                <td>
+                    <a asp-action="Details" asp-route-id="@v.VehicleId">Details</a> |
+                    <a asp-action="Edit" asp-route-id="@v.VehicleId">Edit</a> |
+                    <a asp-action="Delete" asp-route-id="@v.VehicleId">Deactivate</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

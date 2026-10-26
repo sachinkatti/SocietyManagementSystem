@@ -1,0 +1,70 @@
+﻿@model SMS.Application.TenantDto
+
+@{
+    ViewData["Title"] = "Create Tenant";
+}
+
+<h2>Create Tenant</h2>
+
+<hr />
+
+<div class="row">
+    <div class="col-md-8">
+        <form asp-action="Create" method="post">
+            <div asp-validation-summary="ModelOnly"
+                 class="text-danger mb-3"></div>
+
+            <div class="mb-3">
+                <label asp-for="TenantName" class="form-label"></label>
+                <input asp-for="TenantName" class="form-control" />
+                <span asp-validation-for="TenantName"
+                      class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="TenantCode" class="form-label"></label>
+                <input asp-for="TenantCode" class="form-control" />
+                <span asp-validation-for="TenantCode"
+                      class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="TenantAddress" class="form-label"></label>
+                <textarea asp-for="TenantAddress"
+                          class="form-control"></textarea>
+                <span asp-validation-for="TenantAddress"
+                      class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="Email" class="form-label"></label>
+                <input asp-for="Email" class="form-control" />
+                <span asp-validation-for="Email"
+                      class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="PhoneNumber" class="form-label"></label>
+                <input asp-for="PhoneNumber" class="form-control" />
+                <span asp-validation-for="PhoneNumber"
+                      class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="TenantDescription"
+                       class="form-label"></label>
+                <textarea asp-for="TenantDescription"
+                          class="form-control"></textarea>
+                <span asp-validation-for="TenantDescription"
+                      class="text-danger"></span>
+            </div>
+
+            <button type="submit" class="btn btn-primary">Save</button>
+            <a asp-action="Index" class="btn btn-secondary">Back</a>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

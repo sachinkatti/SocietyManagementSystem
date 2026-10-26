@@ -1,0 +1,80 @@
+﻿@model SMS.Application.StateDto
+
+@{
+    ViewData["Title"] = "Edit State";
+}
+
+<div class="container mt-4">
+    <h2>Edit State</h2>
+
+    <form asp-action="Edit" method="post">
+
+        <input type="hidden" asp-for="StateId" />
+
+        <div asp-validation-summary="ModelOnly"
+             class="text-danger"></div>
+
+        <div class="mb-3">
+            <label asp-for="CountryId" class="form-label">
+                Country
+            </label>
+
+            <select asp-for="CountryId"
+                    asp-items="ViewBag.Countries"
+                    class="form-select">
+                <option value="">-- Select Country --</option>
+            </select>
+
+            <span asp-validation-for="CountryId"
+                  class="text-danger"></span>
+        </div>
+
+        <div class="mb-3">
+            <label asp-for="StateName" class="form-label">
+                State Name
+            </label>
+
+            <input asp-for="StateName"
+                   class="form-control" />
+
+            <span asp-validation-for="StateName"
+                  class="text-danger"></span>
+        </div>
+
+        <div class="mb-3">
+            <label asp-for="StateCode" class="form-label">
+                State Code
+            </label>
+
+            <input asp-for="StateCode"
+                   class="form-control" />
+
+            <span asp-validation-for="StateCode"
+                  class="text-danger"></span>
+        </div>
+
+        <div class="form-check mb-3">
+            <input asp-for="IsActive"
+                   class="form-check-input" />
+
+            <label asp-for="IsActive"
+                   class="form-check-label">
+                Active
+            </label>
+        </div>
+
+        <button type="submit"
+                class="btn btn-primary">
+            Update
+        </button>
+
+        <a asp-action="Index"
+               class="btn btn-secondary">
+            Back
+        </a>
+    </form>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

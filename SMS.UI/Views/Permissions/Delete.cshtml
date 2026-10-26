@@ -1,0 +1,33 @@
+﻿@model SMS.Application.PermissionDto
+
+@{
+    ViewData["Title"] = "Deactivate Permission";
+}
+
+<div class="container mt-4">
+    <h2>Deactivate Permission</h2>
+
+    <div class="alert alert-warning">
+        Are you sure you want to deactivate this permission?
+    </div>
+
+    <dl class="row">
+        <dt class="col-sm-3">Permission ID</dt>
+        <dd class="col-sm-9">@Model.PermissionId</dd>
+
+        <dt class="col-sm-3">Permission Name</dt>
+        <dd class="col-sm-9">@Model.PermissionName</dd>
+
+        <dt class="col-sm-3">Permission Code</dt>
+        <dd class="col-sm-9">@Model.PermissionCode</dd>
+
+        <dt class="col-sm-3">Description</dt>
+        <dd class="col-sm-9">@Model.Description</dd>
+    </dl>
+
+    <form asp-action="Delete" asp-route-id="@Model.PermissionId" method="post">
+        @Html.AntiForgeryToken()
+        <button type="submit" class="btn btn-danger">Confirm Deactivation</button>
+        <a asp-action="Index" class="btn btn-secondary">Cancel</a>
+    </form>
+</div>

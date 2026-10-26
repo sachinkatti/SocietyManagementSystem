@@ -1,0 +1,83 @@
+﻿@model IEnumerable<SMS.Application.CountryDto>
+
+@{
+    ViewData["Title"] = "Countries";
+}
+
+<div class="container mt-4">
+
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2>Countries</h2>
+
+        <a asp-action="Create" class="btn btn-primary">
+            Add Country
+        </a>
+    </div>
+
+    <table class="table table-bordered table-striped">
+
+        <thead>
+            <tr>
+                <th>Country ID</th>
+                <th>Region</th>
+                <th>Country Name</th>
+                <th>Country Code</th>
+                <th>Description</th>
+                <th>Status</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+
+        <tbody>
+
+            @foreach (var country in Model)
+            {
+                <tr>
+                    <td>@country.CountryId</td>
+
+                    <td>@country.RegionName</td>
+
+                    <td>@country.CountryName</td>
+
+                    <td>@country.CountryCode</td>
+
+                    <td>@country.Description</td>
+
+                    <td>
+                        @if (country.IsActive)
+                        {
+                            <span class="badge bg-success">Active</span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-danger">Inactive</span>
+                        }
+                    </td>
+
+                    <td>
+                        <a asp-action="Details"
+                               asp-route-id="@country.CountryId"
+                               class="btn btn-info btn-sm">
+                            Details
+                        </a>
+
+                        <a asp-action="Edit"
+                               asp-route-id="@country.CountryId"
+                               class="btn btn-warning btn-sm">
+                            Edit
+                        </a>
+
+                        <a asp-action="Delete"
+                               asp-route-id="@country.CountryId"
+                               class="btn btn-danger btn-sm">
+                            Delete
+                        </a>
+                    </td>
+                </tr>
+            }
+
+        </tbody>
+
+    </table>
+
+</div>

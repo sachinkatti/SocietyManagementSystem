@@ -1,0 +1,58 @@
+﻿@model SMS.Application.AdminDto
+
+@{
+    ViewData["Title"] = "Deactivate Admin";
+}
+
+<div class="container mt-4">
+    <h2>Deactivate Admin</h2>
+    <hr />
+
+    <div class="alert alert-warning">
+        Are you sure you want to deactivate this admin?
+        The record will remain in the database.
+    </div>
+
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <dl class="row">
+                <dt class="col-sm-3">Admin ID</dt>
+                <dd class="col-sm-9">@Model.AdminId</dd>
+
+                <dt class="col-sm-3">Name</dt>
+                <dd class="col-sm-9">
+                    @Model.FirstName @Model.MiddleName @Model.LastName
+                </dd>
+
+                <dt class="col-sm-3">Email</dt>
+                <dd class="col-sm-9">@Model.Email</dd>
+
+                <dt class="col-sm-3">Designation</dt>
+                <dd class="col-sm-9">@Model.Designation</dd>
+
+                <dt class="col-sm-3">Contact Number</dt>
+                <dd class="col-sm-9">@Model.ContactNumber</dd>
+
+                <dt class="col-sm-3">Date Assigned</dt>
+                <dd class="col-sm-9">
+                    @Model.DateAssigned.ToString("dd-MM-yyyy")
+                </dd>
+            </dl>
+
+            <form asp-controller="Admin"
+                  asp-action="Delete"
+                  asp-route-id="@Model.AdminId"
+                  method="post">
+
+                @Html.AntiForgeryToken()
+
+                <button type="submit" class="btn btn-danger">
+                    Confirm Deactivation
+                </button>
+
+                <a asp-controller="Admin" asp-action="Index"
+                   class="btn btn-secondary">Cancel</a>
+            </form>
+        </div>
+    </div>
+</div>

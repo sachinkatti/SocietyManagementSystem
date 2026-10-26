@@ -1,0 +1,72 @@
+﻿@model IEnumerable<SMS.Application.TenantDto>
+
+@{
+    ViewData["Title"] = "Tenants";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h2>Tenant Management</h2>
+    <a asp-action="Create" class="btn btn-primary">Add Tenant</a>
+</div>
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success">
+        @TempData["SuccessMessage"]
+    </div>
+}
+
+<div class="table-responsive">
+    <table class="table table-bordered table-striped">
+        <thead>
+            <tr>
+                <th>Id</th>
+                <th>Tenant Name</th>
+                <th>Tenant Code</th>
+                <th>Email</th>
+                <th>Phone</th>
+                <th>Status</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @if (Model.Any())
+            {
+                foreach (var tenant in Model)
+                {
+                    <tr>
+                        <td>@tenant.TenantId</td>
+                        <td>@tenant.TenantName</td>
+                        <td>@tenant.TenantCode</td>
+                        <td>@tenant.Email</td>
+                        <td>@tenant.PhoneNumber</td>
+                        <td>
+                            @(tenant.IsActive ? "Active" : "Inactive")
+                        </td>
+                        <td>
+                            <a asp-action="Details"
+                               asp-route-id="@tenant.TenantId"
+                               class="btn btn-info btn-sm">Details</a>
+
+                            <a asp-action="Edit"
+                               asp-route-id="@tenant.TenantId"
+                               class="btn btn-warning btn-sm">Edit</a>
+
+                            <a asp-action="Delete"
+                               asp-route-id="@tenant.TenantId"
+                               class="btn btn-danger btn-sm">Delete</a>
+                        </td>
+                    </tr>
+                }
+            }
+            else
+            {
+                <tr>
+                    <td colspan="7" class="text-center">
+                        No tenants found.
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>

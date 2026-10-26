@@ -1,0 +1,95 @@
+﻿@model SMS.Application.TalukDto
+
+@{
+    ViewData["Title"] = "Edit Taluk";
+}
+
+<div class="container mt-4">
+    <h2>Edit Taluk</h2>
+
+    <form asp-action="Edit" method="post">
+        <input type="hidden" asp-for="TalukId" />
+
+        <div asp-validation-summary="ModelOnly"
+             class="text-danger"></div>
+
+        <div class="mb-3">
+            <label asp-for="DistrictId"
+                   class="form-label">
+                District
+            </label>
+
+            <select asp-for="DistrictId"
+                    asp-items="ViewBag.Districts"
+                    class="form-select">
+                <option value="">-- Select District --</option>
+            </select>
+
+            <span asp-validation-for="DistrictId"
+                  class="text-danger"></span>
+        </div>
+
+        <div class="mb-3">
+            <label asp-for="TalukName"
+                   class="form-label">
+                Taluk Name
+            </label>
+
+            <input asp-for="TalukName"
+                   class="form-control" />
+
+            <span asp-validation-for="TalukName"
+                  class="text-danger"></span>
+        </div>
+
+        <div class="mb-3">
+            <label asp-for="TalukCode"
+                   class="form-label">
+                Taluk Code
+            </label>
+
+            <input asp-for="TalukCode"
+                   class="form-control" />
+
+            <span asp-validation-for="TalukCode"
+                  class="text-danger"></span>
+        </div>
+
+        <div class="mb-3">
+            <label asp-for="Description"
+                   class="form-label">
+                Description
+            </label>
+
+            <textarea asp-for="Description"
+                      class="form-control"></textarea>
+
+            <span asp-validation-for="Description"
+                  class="text-danger"></span>
+        </div>
+
+        <div class="form-check mb-3">
+            <input asp-for="IsActive"
+                   class="form-check-input" />
+
+            <label asp-for="IsActive"
+                   class="form-check-label">
+                Active
+            </label>
+        </div>
+
+        <button type="submit"
+                class="btn btn-primary">
+            Update
+        </button>
+
+        <a asp-action="Index"
+               class="btn btn-secondary">
+            Back
+        </a>
+    </form>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
