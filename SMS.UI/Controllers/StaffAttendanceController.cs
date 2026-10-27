@@ -1,167 +1,224 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using SMS.Application;
 
 namespace SMS.UI.Controllers
 {
     public class StaffAttendanceController : Controller
     {
-        private readonly IStaffAttendanceService _service;
+        private readonly IStaffAttendanceService _attendanceService;
+        private readonly ITenantService _tenantService;
 
-        public StaffAttendanceController(IStaffAttendanceService service)
+        public StaffAttendanceController(
+            IStaffAttendanceService attendanceService,
+            ITenantService tenantService)
         {
-            _service = service;
+            _attendanceService = attendanceService;
+            _tenantService = tenantService;
         }
 
+        // 1. List attendance records
         public async Task<IActionResult> Index()
         {
-            var records = await _service.GetAllAsync();
-            return View(records);
+            var attendanceList = await _attendanceService.GetAllAsync();
+            return View(attendanceList);
         }
 
-        public async Task<IActionResult> Details(long id)
-        {
-            var record = await _service.GetByIdAsync(id);
-
-            if (record == null)
-            {
-                return NotFound();
-            }
-
-            return View(record);
-        }
-
+        // 2. Display create form
         [HttpGet]
-        public IActionResult Create()
+        public async Task<IActionResult> Create()
         {
+            await LoadTenantsAsync();
+
             return View(new StaffAttendanceDto
             {
                 CheckInTime = DateTime.Now
             });
         }
 
+        // 3. Save new attendance record
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(StaffAttendanceDto dto)
         {
-            ValidateAttendance(dto);
-
             if (!ModelState.IsValid)
             {
+                await LoadTenantsAsync();
+                await LoadFlatsAsync(dto.TenantId);
                 return View(dto);
             }
 
-            await _service.CreateAsync(dto);
-            return RedirectToAction(nameof(Index));
+            try
+            {
+                await _attendanceService.CreateAsync(dto);
+
+                TempData["SuccessMessage"] =
+                    "Staff attendance created successfully.";
+
+                return RedirectToAction(nameof(Index));
+            }
+            catch (ArgumentException ex)
+            {
+                ModelState.AddModelError(string.Empty, ex.Message);
+                await LoadTenantsAsync();
+                await LoadFlatsAsync(dto.TenantId);
+                return View(dto);
+            }
         }
 
+        // 4. Display edit form
         [HttpGet]
         public async Task<IActionResult> Edit(long id)
         {
-            var record = await _service.GetByIdAsync(id);
+            var dto = await _attendanceService.GetByIdAsync(id);
 
-            if (record == null)
+            if (dto == null)
             {
                 return NotFound();
             }
 
-            return View(record);
+            await LoadTenantsAsync();
+            await LoadFlatsAsync(dto.TenantId);
+
+            return View(dto);
         }
 
+        // 5. Save edited attendance record
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(long id, StaffAttendanceDto dto)
+        public async Task<IActionResult> Edit(
+            long id, StaffAttendanceDto dto)
         {
             if (id != dto.AttendanceId)
             {
                 return BadRequest();
             }
 
-            ValidateAttendance(dto);
-
             if (!ModelState.IsValid)
             {
+                await LoadTenantsAsync();
+                await LoadFlatsAsync(dto.TenantId);
                 return View(dto);
             }
 
-            var updated = await _service.UpdateAsync(dto);
+            try
+            {
+                var updated = await _attendanceService.UpdateAsync(dto);
 
-            if (!updated)
+                if (!updated)
+                {
+                    return NotFound();
+                }
+
+                TempData["SuccessMessage"] =
+                    "Staff attendance updated successfully.";
+
+                return RedirectToAction(nameof(Index));
+            }
+            catch (ArgumentException ex)
+            {
+                ModelState.AddModelError(string.Empty, ex.Message);
+                await LoadTenantsAsync();
+                await LoadFlatsAsync(dto.TenantId);
+                return View(dto);
+            }
+        }
+
+        // 6. Display details
+        [HttpGet]
+        public async Task<IActionResult> Details(long id)
+        {
+            var dto = await _attendanceService.GetByIdAsync(id);
+
+            if (dto == null)
             {
                 return NotFound();
             }
 
-            return RedirectToAction(nameof(Index));
+            return View(dto);
         }
 
+        // 7. Display delete confirmation
         [HttpGet]
         public async Task<IActionResult> Delete(long id)
         {
-            var record = await _service.GetByIdAsync(id);
+            var dto = await _attendanceService.GetByIdAsync(id);
 
-            if (record == null)
+            if (dto == null)
             {
                 return NotFound();
             }
 
-            return View(record);
+            return View(dto);
         }
 
+        // 8. Confirm soft delete
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteConfirmed(long id)
+        public async Task<IActionResult> DeleteConfirmed(
+            long id, long? modifyBy)
         {
-            var deleted = await _service.DeleteAsync(id);
+            var deleted = await _attendanceService.DeleteAsync(id, modifyBy);
 
             if (!deleted)
             {
                 return NotFound();
             }
 
+            TempData["SuccessMessage"] =
+                "Staff attendance deleted successfully.";
+
             return RedirectToAction(nameof(Index));
         }
 
-        private void ValidateAttendance(StaffAttendanceDto dto)
+        // 9. Load flats when the society changes
+        [HttpGet]
+        public async Task<IActionResult> GetFlatsByTenant(long tenantId)
         {
-            if (string.IsNullOrWhiteSpace(dto.StaffName))
+            if (tenantId <= 0)
             {
-                ModelState.AddModelError(nameof(dto.StaffName), "Staff name is required.");
-            }
-            else if (dto.StaffName.Trim().Length > 100)
-            {
-                ModelState.AddModelError(nameof(dto.StaffName), "Staff name cannot exceed 100 characters.");
+                return Json(new object[0]);
             }
 
-            if (string.IsNullOrWhiteSpace(dto.StaffRole))
-            {
-                ModelState.AddModelError(nameof(dto.StaffRole), "Staff role is required.");
-            }
-            else if (dto.StaffRole.Trim().Length > 50)
-            {
-                ModelState.AddModelError(nameof(dto.StaffRole), "Staff role cannot exceed 50 characters.");
-            }
+            var flats = await _attendanceService.GetFlatsByTenantAsync(tenantId);
 
-            if (dto.FlatId <= 0)
+            var result = flats.Select(f => new
             {
-                ModelState.AddModelError(nameof(dto.FlatId), "Enter a valid Flat ID.");
-            }
+                flatId = f.FlatId,
+                flatNumber = f.FlatNumber,
+                wingName = f.WingName
+            });
 
-            if (dto.CheckInTime == default)
-            {
-                ModelState.AddModelError(nameof(dto.CheckInTime), "Check-in time is required.");
-            }
+            return Json(result);
+        }
 
-            if (dto.CheckOutTime.HasValue &&
-                dto.CheckOutTime.Value < dto.CheckInTime)
-            {
-                ModelState.AddModelError(
-                    nameof(dto.CheckOutTime),
-                    "Check-out time cannot be earlier than check-in time.");
-            }
+        // Helper: load society dropdown
+        private async Task LoadTenantsAsync()
+        {
+            var tenants = await _tenantService.GetAllAsync();
 
-            if (dto.TenantId <= 0)
-            {
-                ModelState.AddModelError(nameof(dto.TenantId), "Enter a valid Tenant ID.");
-            }
+            ViewBag.Tenants = new SelectList(
+                tenants,
+                "TenantId",
+                "TenantName");
+        }
+
+        // Helper: load flat dropdown
+        private async Task LoadFlatsAsync(long tenantId)
+        {
+            var flats = tenantId > 0
+                ? await _attendanceService.GetFlatsByTenantAsync(tenantId)
+                : new List<SMS.Domain.StaffAttendance>();
+
+            ViewBag.Flats = new SelectList(
+                flats.Select(f => new
+                {
+                    f.FlatId,
+                    DisplayName = $"{f.WingName} - {f.FlatNumber}"
+                }),
+                "FlatId",
+                "DisplayName");
         }
     }
 }

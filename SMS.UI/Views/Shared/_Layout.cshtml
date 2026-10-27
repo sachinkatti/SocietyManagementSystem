@@ -85,7 +85,7 @@
                 <a asp-controller="Wing" asp-action="Index" class="sidebar-link @(currentController == "Wings" ? "active" : "")">
                     <span class="nav-icon">▤</span><span>Wings</span>
                 </a>
-                <a asp-controller="Flats" asp-action="Index" class="sidebar-link @(currentController == "Flats" ? "active" : "")">
+                <a asp-controller="Flat" asp-action="Index" class="sidebar-link @(currentController == "Flats" ? "active" : "")">
                     <span class="nav-icon">⌂</span><span>Flats</span>
                 </a>
                 <a asp-controller="Residents" asp-action="Index" class="sidebar-link @(currentController == "Residents" ? "active" : "")">
@@ -109,10 +109,10 @@
                 <a asp-controller="VisitorLogs" asp-action="Index" class="sidebar-link @(currentController == "VisitorLogs" ? "active" : "")">
                     <span class="nav-icon">⇥</span><span>Visitor Logs</span>
                 </a>
-                <a asp-controller="Complaints" asp-action="Index" class="sidebar-link @(currentController == "Complaints" ? "active" : "")">
+                <a asp-controller="Complaint" asp-action="Index" class="sidebar-link @(currentController == "Complaints" ? "active" : "")">
                     <span class="nav-icon">☷</span><span>Complaints</span>
                 </a>
-                <a asp-controller="Notices" asp-action="Index" class="sidebar-link @(currentController == "Notices" ? "active" : "")">
+                <a asp-controller="Notice" asp-action="Index" class="sidebar-link @(currentController == "Notices" ? "active" : "")">
                     <span class="nav-icon">▤</span><span>Notices</span>
                 </a>
                 <a asp-controller="StaffAttendance" asp-action="Index" class="sidebar-link @(currentController == "StaffAttendance" ? "active" : "")">
@@ -139,10 +139,13 @@
                 <a asp-controller="PlanFeatures" asp-action="Index" class="sidebar-link @(currentController == "PlanFeatures" ? "active" : "")">
                     <span class="nav-icon">⇄</span><span>Plan Features</span>
                 </a>
-                <a asp-controller="TenantSubscriptions" asp-action="Index" class="sidebar-link @(currentController == "TenantSubscriptions" ? "active" : "")">
+                <a asp-controller="TenantSubscription" asp-action="Index" class="sidebar-link @(currentController == "TenantSubscriptions" ? "active" : "")">
                     <span class="nav-icon">◷</span><span>Subscriptions</span>
                 </a>
-                <a asp-controller="Invoices" asp-action="Index" class="sidebar-link @(currentController == "Invoices" ? "active" : "")">
+                <a asp-controller="Invoice" asp-action="Index" class="sidebar-link @(currentController == "Invoices" ? "active" : "")">
+                    <span class="nav-icon">▧</span><span>Invoices</span>
+                </a>
+                <a asp-controller="Payment" asp-action="Index" class="sidebar-link @(currentController == "Invoices" ? "active" : "")">
                     <span class="nav-icon">▧</span><span>Invoices</span>
                 </a>
             </div>

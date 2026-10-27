@@ -1,5 +1,7 @@
 ﻿
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.Data.SqlClient;
 using SMS.Application;
 
 namespace SMS.UI.Controllers
@@ -7,10 +9,14 @@ namespace SMS.UI.Controllers
     public class AmenitiesController : Controller
     {
         private readonly IAmenityService _amenityService;
+        private readonly ITenantService _tenantService;
 
-        public AmenitiesController(IAmenityService amenityService)
+        public AmenitiesController(
+            IAmenityService amenityService,
+            ITenantService tenantService)
         {
             _amenityService = amenityService;
+            _tenantService = tenantService;
         }
 
         public async Task<IActionResult> Index()
@@ -30,8 +36,9 @@ namespace SMS.UI.Controllers
         }
 
         [HttpGet]
-        public IActionResult Create()
+        public async Task<IActionResult> Create()
         {
+            await LoadTenantsAsync();
             return View(new AmenityDto());
         }
 
@@ -39,25 +46,30 @@ namespace SMS.UI.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(AmenityDto dto)
         {
-            if (string.IsNullOrWhiteSpace(dto.Name))
-                ModelState.AddModelError(nameof(dto.Name), "Name is required.");
-
-            if (dto.DepositRequired < 0)
-                ModelState.AddModelError(nameof(dto.DepositRequired), "Deposit cannot be negative.");
-
-            if (dto.MaxSlotHours <= 0)
-                ModelState.AddModelError(nameof(dto.MaxSlotHours), "Maximum slot hours must be greater than zero.");
-
-            if (dto.TenantId <= 0)
-                ModelState.AddModelError(nameof(dto.TenantId), "Enter a valid Tenant ID.");
-
             if (!ModelState.IsValid)
+            {
+                await LoadTenantsAsync(dto.TenantId);
                 return View(dto);
+            }
 
-            await _amenityService.CreateAsync(dto);
+            try
+            {
+                await _amenityService.CreateAsync(dto);
 
-            TempData["Success"] = "Amenity created successfully.";
-            return RedirectToAction(nameof(Index));
+                TempData["SuccessMessage"] = "Amenity created successfully.";
+                return RedirectToAction(nameof(Index));
+            }
+            catch (SqlException ex) when (
+                ex.Number == 50001 ||
+                ex.Number == 547)
+            {
+                ModelState.AddModelError(
+                    nameof(dto.TenantId),
+                    "The selected tenant is invalid. Please select a valid tenant.");
+
+                await LoadTenantsAsync(dto.TenantId);
+                return View(dto);
+            }
         }
 
         [HttpGet]
@@ -68,6 +80,7 @@ namespace SMS.UI.Controllers
             if (amenity == null)
                 return NotFound();
 
+            await LoadTenantsAsync(amenity.TenantId);
             return View(amenity);
         }
 
@@ -78,28 +91,33 @@ namespace SMS.UI.Controllers
             if (id != dto.AmenityId)
                 return BadRequest();
 
-            if (string.IsNullOrWhiteSpace(dto.Name))
-                ModelState.AddModelError(nameof(dto.Name), "Name is required.");
-
-            if (dto.DepositRequired < 0)
-                ModelState.AddModelError(nameof(dto.DepositRequired), "Deposit cannot be negative.");
-
-            if (dto.MaxSlotHours <= 0)
-                ModelState.AddModelError(nameof(dto.MaxSlotHours), "Maximum slot hours must be greater than zero.");
-
-            if (dto.TenantId <= 0)
-                ModelState.AddModelError(nameof(dto.TenantId), "Enter a valid Tenant ID.");
-
             if (!ModelState.IsValid)
+            {
+                await LoadTenantsAsync(dto.TenantId);
                 return View(dto);
+            }
 
-            var updated = await _amenityService.UpdateAsync(dto);
+            try
+            {
+                bool updated = await _amenityService.UpdateAsync(dto);
 
-            if (!updated)
-                return NotFound();
+                if (!updated)
+                    return NotFound();
 
-            TempData["Success"] = "Amenity updated successfully.";
-            return RedirectToAction(nameof(Index));
+                TempData["SuccessMessage"] = "Amenity updated successfully.";
+                return RedirectToAction(nameof(Index));
+            }
+            catch (SqlException ex) when (
+                ex.Number == 50001 ||
+                ex.Number == 547)
+            {
+                ModelState.AddModelError(
+                    nameof(dto.TenantId),
+                    "The selected tenant is invalid. Please select a valid tenant.");
+
+                await LoadTenantsAsync(dto.TenantId);
+                return View(dto);
+            }
         }
 
         [HttpGet]
@@ -117,13 +135,24 @@ namespace SMS.UI.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(long id)
         {
-            var deleted = await _amenityService.DeleteAsync(id);
+            bool deleted = await _amenityService.DeleteAsync(id);
 
             if (!deleted)
                 return NotFound();
 
-            TempData["Success"] = "Amenity deactivated successfully.";
+            TempData["SuccessMessage"] = "Amenity deactivated successfully.";
             return RedirectToAction(nameof(Index));
+        }
+
+        private async Task LoadTenantsAsync(long? selectedTenantId = null)
+        {
+            var tenants = await _tenantService.GetAllAsync();
+
+            ViewBag.Tenants = new SelectList(
+                tenants.Where(t => t.IsActive),
+                "TenantId",
+                "TenantName",
+                selectedTenantId);
         }
     }
 }

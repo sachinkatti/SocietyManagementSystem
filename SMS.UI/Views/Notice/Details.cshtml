@@ -1,0 +1,51 @@
+﻿@model SMS.Application.NoticeDto
+
+@{
+    ViewData["Title"] = "Notice Details";
+}
+
+<h2>Notice Details</h2>
+
+<dl class="row">
+    <dt class="col-sm-3">Notice ID</dt>
+    <dd class="col-sm-9">@Model.NoticeId</dd>
+
+    <dt class="col-sm-3">Title</dt>
+    <dd class="col-sm-9">@Model.Title</dd>
+
+    <dt class="col-sm-3">Message</dt>
+    <dd class="col-sm-9">@Model.Message</dd>
+
+    <dt class="col-sm-3">Category</dt>
+    <dd class="col-sm-9">@Model.Category</dd>
+
+    <dt class="col-sm-3">Publish Date</dt>
+    <dd class="col-sm-9">@Model.PublishDate.ToString("dd-MM-yyyy HH:mm")</dd>
+
+    <dt class="col-sm-3">Published By Admin ID</dt>
+    <dd class="col-sm-9">@Model.PublishedByAdminId</dd>
+
+    <dt class="col-sm-3">Tenant</dt>
+    <dd class="col-sm-9">@Model.TenantName</dd>
+
+    <dt class="col-sm-3">Created On</dt>
+    <dd class="col-sm-9">@Model.CreatedOn.ToString("dd-MM-yyyy HH:mm")</dd>
+
+    <dt class="col-sm-3">Created By</dt>
+    <dd class="col-sm-9">@(Model.CreatedBy?.ToString() ?? "-")</dd>
+
+    <dt class="col-sm-3">Modified On</dt>
+    <dd class="col-sm-9">@(Model.ModifyOn?.ToString("dd-MM-yyyy HH:mm") ?? "-")</dd>
+
+    <dt class="col-sm-3">Modified By</dt>
+    <dd class="col-sm-9">@(Model.ModifyBy?.ToString() ?? "-")</dd>
+
+    <dt class="col-sm-3">Active</dt>
+    <dd class="col-sm-9">@(Model.IsActive ? "Yes" : "No")</dd>
+</dl>
+
+<a asp-action="Edit"
+   asp-route-id="@Model.NoticeId"
+   class="btn btn-warning">Edit</a>
+
+<a asp-action="Index" class="btn btn-secondary">Back</a>

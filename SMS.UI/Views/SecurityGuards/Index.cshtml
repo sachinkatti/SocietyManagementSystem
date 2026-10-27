@@ -6,9 +6,9 @@
 
 <h2>Security Guards</h2>
 
-@if (TempData["SuccessMessage"] != null)
+@if (TempData["Success"] != null)
 {
-    <div class="alert alert-success">@TempData["SuccessMessage"]</div>
+    <div class="alert alert-success">@TempData["Success"]</div>
 }
 
 <p>
@@ -18,7 +18,8 @@
 <table class="table table-bordered table-striped">
     <thead>
         <tr>
-            <th>User Name</th>
+            <th>ID</th>
+            <th>User</th>
             <th>Shift Timing</th>
             <th>Assigned Gate</th>
             <th>Joining Date</th>
@@ -29,14 +30,15 @@
         @foreach (var guard in Model)
         {
             <tr>
-                <td>@guard.UserFullName</td>
+                <td>@guard.GuardId</td>
+                <td>@guard.FullName</td>
                 <td>@guard.ShiftTiming</td>
-                <td>@guard.AssignedGate</td>
-                <td>@guard.JoiningDate.ToString("yyyy-MM-dd")</td>
+                <td>@(guard.AssignedGate ?? "-")</td>
+                <td>@guard.JoiningDate.ToString("dd-MM-yyyy")</td>
                 <td>
                     <a asp-action="Details" asp-route-id="@guard.GuardId">Details</a> |
                     <a asp-action="Edit" asp-route-id="@guard.GuardId">Edit</a> |
-                    <a asp-action="Delete" asp-route-id="@guard.GuardId">Deactivate</a>
+                    <a asp-action="Delete" asp-route-id="@guard.GuardId">Delete</a>
                 </td>
             </tr>
         }

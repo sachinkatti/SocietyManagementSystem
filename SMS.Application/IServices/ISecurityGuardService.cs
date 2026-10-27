@@ -1,4 +1,5 @@
-﻿namespace SMS.Application
+﻿
+namespace SMS.Application
 {
     public interface ISecurityGuardService
     {

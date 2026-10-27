@@ -1,0 +1,56 @@
+﻿@model SMS.Application.PaymentDto
+
+@{
+    ViewData["Title"] = "Payment Details";
+}
+
+<div class="container mt-4">
+    <h2>Payment Details</h2>
+    <hr />
+
+    <dl class="row">
+        <dt class="col-sm-3">Payment ID</dt>
+        <dd class="col-sm-9">@Model.PaymentId</dd>
+
+        <dt class="col-sm-3">Invoice Number</dt>
+        <dd class="col-sm-9">@Model.InvoiceNumber</dd>
+
+        <dt class="col-sm-3">Payment Reference</dt>
+        <dd class="col-sm-9">@Model.PaymentReference</dd>
+
+        <dt class="col-sm-3">Payment Date</dt>
+        <dd class="col-sm-9">
+            @Model.PaymentDate.ToString("dd-MM-yyyy HH:mm")
+        </dd>
+
+        <dt class="col-sm-3">Amount</dt>
+        <dd class="col-sm-9">@Model.Amount.ToString("N2")</dd>
+
+        <dt class="col-sm-3">Payment Method</dt>
+        <dd class="col-sm-9">@Model.PaymentMethod</dd>
+
+        <dt class="col-sm-3">Status</dt>
+        <dd class="col-sm-9">@Model.Status</dd>
+
+        <dt class="col-sm-3">Transaction ID</dt>
+        <dd class="col-sm-9">
+            @(string.IsNullOrWhiteSpace(Model.TransactionId)
+                ? "N/A"
+                : Model.TransactionId)
+        </dd>
+
+        <dt class="col-sm-3">Description</dt>
+        <dd class="col-sm-9">
+            @(string.IsNullOrWhiteSpace(Model.Description)
+                ? "N/A"
+                : Model.Description)
+        </dd>
+    </dl>
+
+    <a asp-action="Edit"
+       asp-route-id="@Model.PaymentId"
+       class="btn btn-warning">Edit</a>
+
+    <a asp-action="Index"
+       class="btn btn-secondary">Back to List</a>
+</div>

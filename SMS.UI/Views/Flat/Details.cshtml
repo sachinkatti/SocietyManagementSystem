@@ -1,0 +1,47 @@
+﻿@model SMS.Application.FlatDto
+
+@{
+    ViewData["Title"] = "Flat Details";
+}
+
+<div class="container-fluid">
+    <h2>Flat Details</h2>
+
+    <div class="card">
+        <div class="card-body">
+            <dl class="row">
+                <dt class="col-sm-3">Flat ID</dt>
+                <dd class="col-sm-9">@Model.FlatId</dd>
+
+                <dt class="col-sm-3">Wing</dt>
+                <dd class="col-sm-9">@Model.WingName</dd>
+
+                <dt class="col-sm-3">Flat Number</dt>
+                <dd class="col-sm-9">@Model.FlatNumber</dd>
+
+                <dt class="col-sm-3">Floor Number</dt>
+                <dd class="col-sm-9">@Model.FloorNumber</dd>
+
+                <dt class="col-sm-3">Square Feet</dt>
+                <dd class="col-sm-9">@Model.SquareFeet</dd>
+
+                <dt class="col-sm-3">Occupancy Status</dt>
+                <dd class="col-sm-9">@Model.OccupancyStatus</dd>
+
+                <dt class="col-sm-3">Parking Slot</dt>
+                <dd class="col-sm-9">@(Model.ParkingSlotNumber ?? "-")</dd>
+
+                <dt class="col-sm-3">Description</dt>
+                <dd class="col-sm-9">@(Model.Description ?? "-")</dd>
+
+                <dt class="col-sm-3">Created On</dt>
+                <dd class="col-sm-9">@Model.CreatedOn</dd>
+            </dl>
+
+            <a asp-action="Edit" asp-route-id="@Model.FlatId"
+               class="btn btn-warning">Edit</a>
+
+            <a asp-action="Index" class="btn btn-secondary">Back</a>
+        </div>
+    </div>
+</div>

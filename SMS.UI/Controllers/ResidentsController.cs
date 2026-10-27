@@ -1,6 +1,6 @@
 ﻿
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Data.SqlClient;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using SMS.Application;
 
 namespace SMS.UI.Controllers
@@ -8,15 +8,23 @@ namespace SMS.UI.Controllers
     public class ResidentsController : Controller
     {
         private readonly IResidentService _residentService;
+        private readonly IUserService _userService;
+        private readonly IFlatService _flatService;
 
-        public ResidentsController(IResidentService residentService)
+        public ResidentsController(
+            IResidentService residentService,
+            IUserService userService,
+            IFlatService flatService)
         {
             _residentService = residentService;
+            _userService = userService;
+            _flatService = flatService;
         }
 
         public async Task<IActionResult> Index()
         {
-            return View(await _residentService.GetAllAsync());
+            var residents = await _residentService.GetAllAsync();
+            return View(residents);
         }
 
         public async Task<IActionResult> Details(long id)
@@ -24,16 +32,19 @@ namespace SMS.UI.Controllers
             var resident = await _residentService.GetByIdAsync(id);
 
             if (resident == null)
-            {
                 return NotFound();
-            }
 
             return View(resident);
         }
 
-        public IActionResult Create()
+        public async Task<IActionResult> Create()
         {
-            return View(new ResidentDto());
+            await LoadDropdownsAsync();
+
+            return View(new ResidentDto
+            {
+                MoveInDate = DateTime.Today
+            });
         }
 
         [HttpPost]
@@ -42,21 +53,15 @@ namespace SMS.UI.Controllers
         {
             if (!ModelState.IsValid)
             {
+                await LoadDropdownsAsync(dto.UserId, dto.FlatId);
                 return View(dto);
             }
 
-            try
-            {
-                await _residentService.CreateAsync(dto);
-                TempData["SuccessMessage"] = "Resident created successfully.";
-                return RedirectToAction(nameof(Index));
-            }
-            catch (SqlException)
-            {
-                ModelState.AddModelError(string.Empty,
-                    "Unable to create resident. Verify that the User ID and Flat ID exist.");
-                return View(dto);
-            }
+            await _residentService.CreateAsync(dto);
+
+            TempData["SuccessMessage"] = "Resident created successfully.";
+
+            return RedirectToAction(nameof(Index));
         }
 
         public async Task<IActionResult> Edit(long id)
@@ -64,9 +69,9 @@ namespace SMS.UI.Controllers
             var resident = await _residentService.GetByIdAsync(id);
 
             if (resident == null)
-            {
                 return NotFound();
-            }
+
+            await LoadDropdownsAsync(resident.UserId, resident.FlatId);
 
             return View(resident);
         }
@@ -76,33 +81,27 @@ namespace SMS.UI.Controllers
         public async Task<IActionResult> Edit(long id, ResidentDto dto)
         {
             if (id != dto.ResidentId)
-            {
                 return BadRequest();
-            }
 
             if (!ModelState.IsValid)
             {
+                await LoadDropdownsAsync(dto.UserId, dto.FlatId);
                 return View(dto);
             }
 
-            try
-            {
-                var updated = await _residentService.UpdateAsync(dto);
+            var existing = await _residentService.GetByIdAsync(id);
 
-                if (!updated)
-                {
-                    return NotFound();
-                }
+            if (existing == null)
+                return NotFound();
 
-                TempData["SuccessMessage"] = "Resident updated successfully.";
-                return RedirectToAction(nameof(Index));
-            }
-            catch (SqlException)
-            {
-                ModelState.AddModelError(string.Empty,
-                    "Unable to update resident. Verify that the User ID and Flat ID exist.");
-                return View(dto);
-            }
+            var updated = await _residentService.UpdateAsync(dto);
+
+            if (!updated)
+                return NotFound();
+
+            TempData["SuccessMessage"] = "Resident updated successfully.";
+
+            return RedirectToAction(nameof(Index));
         }
 
         public async Task<IActionResult> Delete(long id)
@@ -110,9 +109,7 @@ namespace SMS.UI.Controllers
             var resident = await _residentService.GetByIdAsync(id);
 
             if (resident == null)
-            {
                 return NotFound();
-            }
 
             return View(resident);
         }
@@ -124,12 +121,32 @@ namespace SMS.UI.Controllers
             var deleted = await _residentService.DeleteAsync(id);
 
             if (!deleted)
-            {
                 return NotFound();
-            }
 
-            TempData["SuccessMessage"] = "Resident deactivated successfully.";
+            TempData["SuccessMessage"] = "Resident deleted successfully.";
+
             return RedirectToAction(nameof(Index));
+        }
+
+        private async Task LoadDropdownsAsync(
+            long? selectedUserId = null,
+            long? selectedFlatId = null)
+        {
+            var users = await _userService.GetAllAsync();
+
+            ViewBag.Users = new SelectList(
+                users.Where(u => u.IsActive),
+                "UserId",
+                "FullName",
+                selectedUserId);
+
+            var flats = await _flatService.GetAllAsync();
+
+            ViewBag.Flats = new SelectList(
+                flats.Where(f => f.IsActive),
+                "FlatId",
+                "FlatNumber",
+                selectedFlatId);
         }
     }
 }

@@ -20,13 +20,9 @@ namespace SMS.Infrastructure
 
             using var connection = _connectionFactory.CreateConnection();
             using var command = new SqlCommand(
-                @"SELECT BookingId, AmenityId, FlatId, SlotDate, SlotTime,
-                         DepositPaid, Status, Description, IsActive,
-                         CreatedOn, CreatedBy, ModifyOn, ModifyBy, TenantId
-                  FROM AmenityBookings
-                  WHERE IsActive = 1
-                  ORDER BY BookingId DESC",
-                connection);
+                "GetAllAmenityBookings", connection);
+
+            command.CommandType = CommandType.StoredProcedure;
 
             await connection.OpenAsync();
 
@@ -44,138 +40,231 @@ namespace SMS.Infrastructure
         {
             using var connection = _connectionFactory.CreateConnection();
             using var command = new SqlCommand(
-                @"SELECT BookingId, AmenityId, FlatId, SlotDate, SlotTime,
-                         DepositPaid, Status, Description, IsActive,
-                         CreatedOn, CreatedBy, ModifyOn, ModifyBy, TenantId
-                  FROM AmenityBookings
-                  WHERE BookingId = @BookingId AND IsActive = 1",
-                connection);
+                "GetAmenityBookingById", connection);
 
-            command.Parameters.Add("@BookingId", SqlDbType.BigInt).Value = bookingId;
+            command.CommandType = CommandType.StoredProcedure;
+            command.Parameters.Add("@BookingId", SqlDbType.BigInt).Value =
+                bookingId;
 
             await connection.OpenAsync();
 
             using var reader = await command.ExecuteReaderAsync();
 
-            return await reader.ReadAsync() ? MapBooking(reader) : null;
+            if (await reader.ReadAsync())
+            {
+                return MapBooking(reader);
+            }
+
+            return null;
         }
 
         public async Task<long> CreateAsync(AmenityBooking booking)
         {
             using var connection = _connectionFactory.CreateConnection();
             using var command = new SqlCommand(
-                @"INSERT INTO AmenityBookings
-                    (AmenityId, FlatId, SlotDate, SlotTime, DepositPaid,
-                     Status, Description, IsActive, CreatedOn, CreatedBy, TenantId)
-                  VALUES
-                    (@AmenityId, @FlatId, @SlotDate, @SlotTime, @DepositPaid,
-                     @Status, @Description, @IsActive, @CreatedOn, @CreatedBy, @TenantId);
-                  SELECT CAST(SCOPE_IDENTITY() AS BIGINT);",
-                connection);
+                "InsertAmenityBooking", connection);
+
+            command.CommandType = CommandType.StoredProcedure;
 
             AddBookingParameters(command, booking);
 
-            command.Parameters.Add("@IsActive", SqlDbType.Bit).Value = true;
-            command.Parameters.Add("@CreatedOn", SqlDbType.DateTime2).Value = DateTime.UtcNow;
             command.Parameters.Add("@CreatedBy", SqlDbType.BigInt).Value =
                 (object?)booking.CreatedBy ?? DBNull.Value;
 
             await connection.OpenAsync();
 
-            return Convert.ToInt64(await command.ExecuteScalarAsync());
+            var result = await command.ExecuteScalarAsync();
+
+            return Convert.ToInt64(result);
         }
 
         public async Task<bool> UpdateAsync(AmenityBooking booking)
         {
             using var connection = _connectionFactory.CreateConnection();
             using var command = new SqlCommand(
-                @"UPDATE AmenityBookings
-                  SET AmenityId = @AmenityId,
-                      FlatId = @FlatId,
-                      SlotDate = @SlotDate,
-                      SlotTime = @SlotTime,
-                      DepositPaid = @DepositPaid,
-                      Status = @Status,
-                      Description = @Description,
-                      TenantId = @TenantId,
-                      ModifyOn = @ModifyOn,
-                      ModifyBy = @ModifyBy
-                  WHERE BookingId = @BookingId AND IsActive = 1",
-                connection);
+                "UpdateAmenityBooking", connection);
+
+            command.CommandType = CommandType.StoredProcedure;
+
+            command.Parameters.Add("@BookingId", SqlDbType.BigInt).Value =
+                booking.BookingId;
 
             AddBookingParameters(command, booking);
 
-            command.Parameters.Add("@BookingId", SqlDbType.BigInt).Value = booking.BookingId;
-            command.Parameters.Add("@ModifyOn", SqlDbType.DateTime2).Value = DateTime.UtcNow;
             command.Parameters.Add("@ModifyBy", SqlDbType.BigInt).Value =
                 (object?)booking.ModifyBy ?? DBNull.Value;
 
             await connection.OpenAsync();
 
-            return await command.ExecuteNonQueryAsync() > 0;
+            var result = await command.ExecuteScalarAsync();
+
+            return Convert.ToInt32(result) > 0;
         }
 
-        public async Task<bool> DeleteAsync(long bookingId)
+        public async Task<bool> DeleteAsync(
+            long bookingId, long? modifyBy = null)
         {
             using var connection = _connectionFactory.CreateConnection();
             using var command = new SqlCommand(
-                @"UPDATE AmenityBookings
-                  SET IsActive = 0, ModifyOn = @ModifyOn
-                  WHERE BookingId = @BookingId AND IsActive = 1",
-                connection);
+                "DeleteAmenityBooking", connection);
 
-            command.Parameters.Add("@BookingId", SqlDbType.BigInt).Value = bookingId;
-            command.Parameters.Add("@ModifyOn", SqlDbType.DateTime2).Value = DateTime.UtcNow;
+            command.CommandType = CommandType.StoredProcedure;
+
+            command.Parameters.Add("@BookingId", SqlDbType.BigInt).Value =
+                bookingId;
+
+            command.Parameters.Add("@ModifyBy", SqlDbType.BigInt).Value =
+                (object?)modifyBy ?? DBNull.Value;
 
             await connection.OpenAsync();
 
-            return await command.ExecuteNonQueryAsync() > 0;
+            var result = await command.ExecuteScalarAsync();
+
+            return Convert.ToInt32(result) > 0;
         }
 
-        private static void AddBookingParameters(SqlCommand command, AmenityBooking booking)
+        public async Task<IEnumerable<AmenityBookingAmenityOption>>
+            GetAmenitiesByTenantAsync(long tenantId)
         {
-            command.Parameters.Add("@AmenityId", SqlDbType.BigInt).Value = booking.AmenityId;
-            command.Parameters.Add("@FlatId", SqlDbType.BigInt).Value = booking.FlatId;
-            command.Parameters.Add("@SlotDate", SqlDbType.Date).Value = booking.SlotDate.Date;
-            command.Parameters.Add("@SlotTime", SqlDbType.NVarChar, 20).Value = booking.SlotTime;
+            var amenities = new List<AmenityBookingAmenityOption>();
 
-            var depositParameter = command.Parameters.Add("@DepositPaid", SqlDbType.Decimal);
+            using var connection = _connectionFactory.CreateConnection();
+            using var command = new SqlCommand(
+                "GetBookingAmenitiesByTenant", connection);
+
+            command.CommandType = CommandType.StoredProcedure;
+            command.Parameters.Add("@TenantId", SqlDbType.BigInt).Value =
+                tenantId;
+
+            await connection.OpenAsync();
+
+            using var reader = await command.ExecuteReaderAsync();
+
+            while (await reader.ReadAsync())
+            {
+                amenities.Add(new AmenityBookingAmenityOption
+                {
+                    AmenityId = Convert.ToInt64(reader["AmenityId"]),
+                    AmenityName = Convert.ToString(
+                        reader["AmenityName"]) ?? string.Empty
+                });
+            }
+
+            return amenities;
+        }
+
+        public async Task<IEnumerable<AmenityBookingFlatOption>>
+            GetFlatsByTenantAsync(long tenantId)
+        {
+            var flats = new List<AmenityBookingFlatOption>();
+
+            using var connection = _connectionFactory.CreateConnection();
+            using var command = new SqlCommand(
+                "GetBookingFlatsByTenant", connection);
+
+            command.CommandType = CommandType.StoredProcedure;
+            command.Parameters.Add("@TenantId", SqlDbType.BigInt).Value =
+                tenantId;
+
+            await connection.OpenAsync();
+
+            using var reader = await command.ExecuteReaderAsync();
+
+            while (await reader.ReadAsync())
+            {
+                flats.Add(new AmenityBookingFlatOption
+                {
+                    FlatId = Convert.ToInt64(reader["FlatId"]),
+                    FlatNumber = Convert.ToString(
+                        reader["FlatNumber"]) ?? string.Empty,
+                    WingId = Convert.ToInt64(reader["WingId"]),
+                    WingName = Convert.ToString(
+                        reader["WingName"]) ?? string.Empty
+                });
+            }
+
+            return flats;
+        }
+
+        private static void AddBookingParameters(
+            SqlCommand command, AmenityBooking booking)
+        {
+            command.Parameters.Add("@TenantId", SqlDbType.BigInt).Value =
+                booking.TenantId;
+
+            command.Parameters.Add("@AmenityId", SqlDbType.BigInt).Value =
+                booking.AmenityId;
+
+            command.Parameters.Add("@FlatId", SqlDbType.BigInt).Value =
+                booking.FlatId;
+
+            command.Parameters.Add("@SlotDate", SqlDbType.Date).Value =
+                booking.SlotDate.Date;
+
+            command.Parameters.Add("@SlotTime", SqlDbType.NVarChar, 40).Value =
+                booking.SlotTime;
+
+            var depositParameter = command.Parameters.Add(
+                "@DepositPaid", SqlDbType.Decimal);
+
             depositParameter.Precision = 18;
             depositParameter.Scale = 2;
             depositParameter.Value = booking.DepositPaid;
 
-            command.Parameters.Add("@Status", SqlDbType.NVarChar, 20).Value = booking.Status;
-            command.Parameters.Add("@Description", SqlDbType.NVarChar, 500).Value =
-                (object?)booking.Description ?? DBNull.Value;
-            command.Parameters.Add("@TenantId", SqlDbType.BigInt).Value = booking.TenantId;
+            command.Parameters.Add("@Status", SqlDbType.NVarChar, 40).Value =
+                booking.Status;
+
+            command.Parameters.Add("@Description", SqlDbType.NVarChar, 1000)
+                .Value = (object?)booking.Description ?? DBNull.Value;
         }
 
         private static AmenityBooking MapBooking(SqlDataReader reader)
         {
             return new AmenityBooking
             {
-                BookingId = reader.GetInt64(reader.GetOrdinal("BookingId")),
-                AmenityId = reader.GetInt64(reader.GetOrdinal("AmenityId")),
-                FlatId = reader.GetInt64(reader.GetOrdinal("FlatId")),
-                SlotDate = reader.GetDateTime(reader.GetOrdinal("SlotDate")),
-                SlotTime = reader.GetString(reader.GetOrdinal("SlotTime")),
-                DepositPaid = reader.GetDecimal(reader.GetOrdinal("DepositPaid")),
-                Status = reader.GetString(reader.GetOrdinal("Status")),
-                Description = reader.IsDBNull(reader.GetOrdinal("Description"))
+                BookingId = Convert.ToInt64(reader["BookingId"]),
+
+                AmenityId = Convert.ToInt64(reader["AmenityId"]),
+                AmenityName = Convert.ToString(
+                    reader["AmenityName"]) ?? string.Empty,
+
+                FlatId = Convert.ToInt64(reader["FlatId"]),
+                FlatNumber = Convert.ToString(
+                    reader["FlatNumber"]) ?? string.Empty,
+                WingName = Convert.ToString(
+                    reader["WingName"]) ?? string.Empty,
+
+                SlotDate = Convert.ToDateTime(reader["SlotDate"]),
+                SlotTime = Convert.ToString(
+                    reader["SlotTime"]) ?? string.Empty,
+
+                DepositPaid = Convert.ToDecimal(reader["DepositPaid"]),
+                Status = Convert.ToString(
+                    reader["Status"]) ?? "Booked",
+
+                Description = reader["Description"] == DBNull.Value
                     ? null
-                    : reader.GetString(reader.GetOrdinal("Description")),
-                IsActive = reader.GetBoolean(reader.GetOrdinal("IsActive")),
-                CreatedOn = reader.GetDateTime(reader.GetOrdinal("CreatedOn")),
-                CreatedBy = reader.IsDBNull(reader.GetOrdinal("CreatedBy"))
+                    : Convert.ToString(reader["Description"]),
+
+                IsActive = Convert.ToBoolean(reader["IsActive"]),
+
+                CreatedOn = Convert.ToDateTime(reader["CreatedOn"]),
+
+                CreatedBy = reader["CreatedBy"] == DBNull.Value
                     ? null
-                    : reader.GetInt64(reader.GetOrdinal("CreatedBy")),
-                ModifyOn = reader.IsDBNull(reader.GetOrdinal("ModifyOn"))
+                    : Convert.ToInt64(reader["CreatedBy"]),
+
+                ModifyOn = reader["ModifyOn"] == DBNull.Value
                     ? null
-                    : reader.GetDateTime(reader.GetOrdinal("ModifyOn")),
-                ModifyBy = reader.IsDBNull(reader.GetOrdinal("ModifyBy"))
+                    : Convert.ToDateTime(reader["ModifyOn"]),
+
+                ModifyBy = reader["ModifyBy"] == DBNull.Value
                     ? null
-                    : reader.GetInt64(reader.GetOrdinal("ModifyBy")),
-                TenantId = reader.GetInt64(reader.GetOrdinal("TenantId"))
+                    : Convert.ToInt64(reader["ModifyBy"]),
+
+                TenantId = Convert.ToInt64(reader["TenantId"]),
+                TenantName = Convert.ToString(
+                    reader["TenantName"]) ?? string.Empty
             };
         }
     }

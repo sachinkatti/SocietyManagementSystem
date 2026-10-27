@@ -1,0 +1,81 @@
+﻿@model IEnumerable<SMS.Application.ComplaintDto>
+
+@{
+    ViewData["Title"] = "Complaints";
+}
+
+<h2>Complaints Management</h2>
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success">
+        @TempData["SuccessMessage"]
+    </div>
+}
+
+<p>
+    <a asp-action="Create" class="btn btn-primary">
+        Register Complaint
+    </a>
+</p>
+
+<div class="table-responsive">
+    <table class="table table-bordered table-striped">
+        <thead class="table-dark">
+            <tr>
+                <th>ID</th>
+                <th>Resident</th>
+                <th>Category</th>
+                <th>Priority</th>
+                <th>Status</th>
+                <th>Date Raised</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @if (Model != null && Model.Any())
+            {
+                foreach (var item in Model)
+                {
+                    <tr>
+                        <td>@item.ComplaintId</td>
+                        <td>@(item.ResidentName ?? "N/A")</td>
+                        <td>@item.Category</td>
+                        <td>
+                            <span class="badge @(item.Priority == "High"
+                                                                                                  ? "bg-danger"
+                                                                                                  : item.Priority == "Medium"
+                                                                                                      ? "bg-warning text-dark"
+                                                                                                      : "bg-success")">
+                                @item.Priority
+                            </span>
+                        </td>
+                        <td>@item.Status</td>
+                        <td>@item.DateRaised.ToString("dd-MM-yyyy")</td>
+                        <td>
+                            <a asp-action="Details"
+                               asp-route-id="@item.ComplaintId"
+                               class="btn btn-info btn-sm">Details</a>
+
+                            <a asp-action="Edit"
+                               asp-route-id="@item.ComplaintId"
+                               class="btn btn-warning btn-sm">Edit</a>
+
+                            <a asp-action="Delete"
+                               asp-route-id="@item.ComplaintId"
+                               class="btn btn-danger btn-sm">Delete</a>
+                        </td>
+                    </tr>
+                }
+            }
+            else
+            {
+                <tr>
+                    <td colspan="7" class="text-center">
+                        No complaints found.
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>

@@ -1,44 +1,76 @@
 ﻿@model SMS.Application.MaintenanceBillDto
 
-<h2>Maintenance Bill Details</h2>
+@{
+    ViewData["Title"] = "Maintenance Bill Details";
+}
 
-<dl class="row">
-    <dt class="col-sm-3">Bill ID</dt>
-    <dd class="col-sm-9">@Model.BillId</dd>
+<div class="container mt-4">
+    <h2>Maintenance Bill Details</h2>
+    <hr />
 
-    <dt class="col-sm-3">Flat ID</dt>
-    <dd class="col-sm-9">@Model.FlatId</dd>
+    <div class="card">
+        <div class="card-header">
+            <strong>Bill #@Model.BillId</strong>
+        </div>
 
-    <dt class="col-sm-3">Billing Period</dt>
-    <dd class="col-sm-9">@Model.BillingMonth / @Model.BillingYear</dd>
+        <div class="card-body">
+            <dl class="row">
+                <dt class="col-sm-4">Tenant</dt>
+                <dd class="col-sm-8">@Model.TenantName</dd>
 
-    <dt class="col-sm-3">Base Amount</dt>
-    <dd class="col-sm-9">@Model.BaseAmount.ToString("N2")</dd>
+                <dt class="col-sm-4">Flat Number</dt>
+                <dd class="col-sm-8">@Model.FlatNumber</dd>
 
-    <dt class="col-sm-3">Penalty Amount</dt>
-    <dd class="col-sm-9">@Model.PenaltyAmount.ToString("N2")</dd>
+                <dt class="col-sm-4">Billing Month</dt>
+                <dd class="col-sm-8">
+                    @(new DateTime(Model.BillingYear, Model.BillingMonth, 1)
+                        .ToString("MMMM yyyy"))
+                </dd>
 
-    <dt class="col-sm-3">Total Amount</dt>
-    <dd class="col-sm-9">@Model.TotalAmount.ToString("N2")</dd>
+                <dt class="col-sm-4">Base Amount</dt>
+                <dd class="col-sm-8">₹@Model.BaseAmount.ToString("N2")</dd>
 
-    <dt class="col-sm-3">Due Date</dt>
-    <dd class="col-sm-9">@Model.DueDate.ToString("dd-MM-yyyy")</dd>
+                <dt class="col-sm-4">Penalty Amount</dt>
+                <dd class="col-sm-8">₹@Model.PenaltyAmount.ToString("N2")</dd>
 
-    <dt class="col-sm-3">Payment Status</dt>
-    <dd class="col-sm-9">@Model.PaymentStatus</dd>
+                <dt class="col-sm-4">Total Amount</dt>
+                <dd class="col-sm-8">
+                    <strong>₹@Model.TotalAmount.ToString("N2")</strong>
+                </dd>
 
-    <dt class="col-sm-3">Payment Date</dt>
-    <dd class="col-sm-9">@(Model.PaymentDate?.ToString("dd-MM-yyyy") ?? "Not paid")</dd>
+                <dt class="col-sm-4">Due Date</dt>
+                <dd class="col-sm-8">@Model.DueDate.ToString("dd-MMM-yyyy")</dd>
 
-    <dt class="col-sm-3">Transaction Reference</dt>
-    <dd class="col-sm-9">@Model.TransactionRef</dd>
+                <dt class="col-sm-4">Payment Status</dt>
+                <dd class="col-sm-8">@Model.PaymentStatus</dd>
 
-    <dt class="col-sm-3">Description</dt>
-    <dd class="col-sm-9">@Model.Description</dd>
+                <dt class="col-sm-4">Payment Date</dt>
+                <dd class="col-sm-8">
+                    @(Model.PaymentDate?.ToString("dd-MMM-yyyy") ?? "Not paid")
+                </dd>
 
-    <dt class="col-sm-3">Tenant ID</dt>
-    <dd class="col-sm-9">@Model.TenantId</dd>
-</dl>
+                <dt class="col-sm-4">Transaction Reference</dt>
+                <dd class="col-sm-8">
+                    @(string.IsNullOrWhiteSpace(Model.TransactionRef)
+                        ? "Not available"
+                        : Model.TransactionRef)
+                </dd>
 
-<a asp-action="Edit" asp-route-id="@Model.BillId" class="btn btn-primary">Edit</a>
-<a asp-action="Index" class="btn btn-secondary">Back</a>
+                <dt class="col-sm-4">Description</dt>
+                <dd class="col-sm-8">
+                    @(string.IsNullOrWhiteSpace(Model.Description)
+                        ? "No description"
+                        : Model.Description)
+                </dd>
+            </dl>
+        </div>
+
+        <div class="card-footer">
+            <a asp-action="Edit"
+               asp-route-id="@Model.BillId"
+               class="btn btn-warning">Edit</a>
+
+            <a asp-action="Index" class="btn btn-secondary">Back to List</a>
+        </div>
+    </div>
+</div>

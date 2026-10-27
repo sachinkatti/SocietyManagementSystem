@@ -7,27 +7,27 @@
 <h2>Resident Details</h2>
 
 <dl class="row">
-    <dt class="col-sm-3">Resident ID</dt>
-    <dd class="col-sm-9">@Model.ResidentId</dd>
+    <dt class="col-sm-3">Name</dt>
+    <dd class="col-sm-9">@Model.FullName</dd>
 
-    <dt class="col-sm-3">User ID</dt>
-    <dd class="col-sm-9">@Model.UserId</dd>
+    <dt class="col-sm-3">Flat</dt>
+    <dd class="col-sm-9">@Model.FlatNumber</dd>
 
-    <dt class="col-sm-3">Flat ID</dt>
-    <dd class="col-sm-9">@Model.FlatId</dd>
+    <dt class="col-sm-3">Wing</dt>
+    <dd class="col-sm-9">@Model.WingName</dd>
 
     <dt class="col-sm-3">Resident Type</dt>
     <dd class="col-sm-9">@Model.ResidentType</dd>
 
-    <dt class="col-sm-3">Move In Date</dt>
-    <dd class="col-sm-9">@Model.MoveInDate.ToString("yyyy-MM-dd")</dd>
+    <dt class="col-sm-3">Move-in Date</dt>
+    <dd class="col-sm-9">@Model.MoveInDate.ToString("dd-MMM-yyyy")</dd>
 
     <dt class="col-sm-3">Emergency Contact</dt>
-    <dd class="col-sm-9">@Model.EmergencyContact</dd>
-
-    <dt class="col-sm-3">Created On</dt>
-    <dd class="col-sm-9">@Model.CreatedOn</dd>
+    <dd class="col-sm-9">@(Model.EmergencyContact ?? "Not provided")</dd>
 </dl>
 
-<a asp-action="Edit" asp-route-id="@Model.ResidentId" class="btn btn-primary">Edit</a>
+<a asp-action="Edit"
+   asp-route-id="@Model.ResidentId"
+   class="btn btn-warning">Edit</a>
+
 <a asp-action="Index" class="btn btn-secondary">Back</a>

@@ -1,0 +1,77 @@
+﻿@model IEnumerable<SMS.Application.FlatDto>
+
+@{
+    ViewData["Title"] = "Flats Management";
+}
+
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2>Flats Management</h2>
+        <a asp-action="Create" class="btn btn-primary">+ Add Flat</a>
+    </div>
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show">
+            @TempData["SuccessMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <div class="card">
+        <div class="card-body table-responsive">
+            <table class="table table-bordered table-striped align-middle">
+                <thead class="table-dark">
+                    <tr>
+                        <th>Flat ID</th>
+                        <th>Wing</th>
+                        <th>Flat Number</th>
+                        <th>Floor</th>
+                        <th>Square Feet</th>
+                        <th>Occupancy</th>
+                        <th>Parking Slot</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model != null && Model.Any())
+                    {
+                        foreach (var flat in Model)
+                        {
+                            <tr>
+                                <td>@flat.FlatId</td>
+                                <td>@flat.WingName</td>
+                                <td>@flat.FlatNumber</td>
+                                <td>@flat.FloorNumber</td>
+                                <td>@flat.SquareFeet</td>
+                                <td>@flat.OccupancyStatus</td>
+                                <td>@(flat.ParkingSlotNumber ?? "-")</td>
+                                <td>
+                                    <a asp-action="Details"
+                                       asp-route-id="@flat.FlatId"
+                                       class="btn btn-sm btn-info">Details</a>
+
+                                    <a asp-action="Edit"
+                                       asp-route-id="@flat.FlatId"
+                                       class="btn btn-sm btn-warning">Edit</a>
+
+                                    <a asp-action="Delete"
+                                       asp-route-id="@flat.FlatId"
+                                       class="btn btn-sm btn-danger">Delete</a>
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="8" class="text-center">
+                                No flats found.
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

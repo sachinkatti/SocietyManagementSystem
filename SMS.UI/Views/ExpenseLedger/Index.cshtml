@@ -1,45 +1,116 @@
-﻿@model IEnumerable<SMS.Application.ExpenseLedgerDto>
+﻿@model List<SMS.Application.ExpenseLedgerDto>
 
 @{
     ViewData["Title"] = "Expense Ledger";
 }
 
-<h2>Expense Ledger</h2>
+<div class="container-fluid mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2>Expense Ledger</h2>
+        <a asp-controller="ExpenseLedger"
+               asp-action="Create"
+               class="btn btn-primary">
+            Create New Entry
+        </a>
+    </div>
 
-<p>
-    <a asp-action="Create" class="btn btn-primary">Add New Entry</a>
-</p>
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success">
+            @TempData["SuccessMessage"]
+        </div>
+    }
 
-<table class="table table-bordered table-striped">
-    <thead>
-        <tr>
-            <th>Ledger ID</th>
-            <th>Entry Type</th>
-            <th>Category</th>
-            <th>Amount</th>
-            <th>Entry Date</th>
-            <th>Admin ID</th>
-            <th>Tenant ID</th>
-            <th>Actions</th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var item in Model)
-        {
-            <tr>
-                <td>@item.LedgerId</td>
-                <td>@item.EntryType</td>
-                <td>@item.Category</td>
-                <td>@item.Amount.ToString("N2")</td>
-                <td>@item.EntryDate.ToString("dd-MM-yyyy")</td>
-                <td>@item.RecordedByAdminId</td>
-                <td>@item.TenantId</td>
-                <td>
-                    <a asp-action="Details" asp-route-id="@item.LedgerId">Details</a> |
-                    <a asp-action="Edit" asp-route-id="@item.LedgerId">Edit</a> |
-                    <a asp-action="Delete" asp-route-id="@item.LedgerId">Delete</a>
-                </td>
-            </tr>
-        }
-    </tbody>
-</table>
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger">
+            @TempData["ErrorMessage"]
+        </div>
+    }
+
+    <div class="table-responsive">
+        <table class="table table-bordered table-striped align-middle">
+            <thead class="table-dark">
+                <tr>
+                    <th>Ledger ID</th>
+                    <th>Entry Type</th>
+                    <th>Category</th>
+                    <th>Amount</th>
+                    <th>Description</th>
+                    <th>Entry Date</th>
+                    <th>Recorded By</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model != null && Model.Any())
+                {
+                    foreach (var entry in Model)
+                    {
+                        <tr>
+                            <td>@entry.LedgerId</td>
+                            <td>
+                                @if (entry.EntryType == "Income")
+                                {
+                                    <span class="badge bg-success">Income</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-danger">Expense</span>
+                                }
+                            </td>
+                            <td>@entry.Category</td>
+                            <td>@entry.Amount.ToString("C2", new System.Globalization.CultureInfo("en-IN"))</td>
+                            <td>@entry.Description</td>
+                            <td>@entry.EntryDate.ToString("dd-MMM-yyyy")</td>
+                            <td>
+                                @entry.RecordedByAdminName
+                                @if (!string.IsNullOrWhiteSpace(entry.Designation))
+                                {
+                                    <small class="text-muted d-block">
+                                        @entry.Designation
+                                    </small>
+                                }
+                            </td>
+                            <td class="text-nowrap">
+                                <a asp-controller="ExpenseLedger"
+                                       asp-action="Details"
+                                       asp-route-id="@entry.LedgerId"
+                                       class="btn btn-info btn-sm">
+                                    Details
+                                </a>
+
+                                <a asp-controller="ExpenseLedger"
+                                       asp-action="Edit"
+                                       asp-route-id="@entry.LedgerId"
+                                       class="btn btn-warning btn-sm">
+                                    Edit
+                                </a>
+
+                                <form asp-controller="ExpenseLedger"
+                                      asp-action="Delete"
+                                      asp-route-id="@entry.LedgerId"
+                                      method="post"
+                                      class="d-inline"
+                                      onsubmit="return confirm('Delete this ledger entry?');">
+                                    @Html.AntiForgeryToken()
+                                    <button type="submit" class="btn btn-danger btn-sm">
+                                        Delete
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="8" class="text-center">
+                            No expense ledger entries found.
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

@@ -1,11 +1,24 @@
-﻿namespace SMS.Application
+﻿
+using SMS.Infrastructure;
+
+namespace SMS.Application
 {
     public interface IVisitorLogService
     {
-        Task<List<VisitorLogDto>> GetAllAsync();
+        Task<IEnumerable<VisitorLogDto>> GetAllAsync();
+
         Task<VisitorLogDto?> GetByIdAsync(long visitorId);
-        Task<long> CreateAsync(VisitorLogDto dto);
-        Task<bool> UpdateAsync(VisitorLogDto dto);
-        Task<bool> DeleteAsync(long visitorId, long? modifyBy);
+
+        Task<long> CreateAsync(VisitorLogDto visitorLogDto);
+
+        Task<bool> UpdateAsync(VisitorLogDto visitorLogDto);
+
+        Task<bool> DeleteAsync(long visitorId, long? modifyBy = null);
+
+        Task<IEnumerable<VisitorLogFlatOption>> GetFlatsByTenantAsync(
+            long tenantId);
+
+        Task<IEnumerable<VisitorLogGuardOption>> GetGuardsByTenantAsync(
+            long tenantId);
     }
 }

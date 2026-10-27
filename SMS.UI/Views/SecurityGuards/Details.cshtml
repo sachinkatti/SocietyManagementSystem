@@ -7,23 +7,23 @@
 <h2>Security Guard Details</h2>
 
 <dl class="row">
-    <dt class="col-sm-3">User Name</dt>
-    <dd class="col-sm-9">@Model.UserFullName</dd>
+    <dt class="col-sm-3">Guard ID</dt>
+    <dd class="col-sm-9">@Model.GuardId</dd>
 
-    <dt class="col-sm-3">Email</dt>
-    <dd class="col-sm-9">@Model.UserEmail</dd>
+    <dt class="col-sm-3">User</dt>
+    <dd class="col-sm-9">@Model.FullName</dd>
 
     <dt class="col-sm-3">Shift Timing</dt>
     <dd class="col-sm-9">@Model.ShiftTiming</dd>
 
     <dt class="col-sm-3">Assigned Gate</dt>
-    <dd class="col-sm-9">@Model.AssignedGate</dd>
+    <dd class="col-sm-9">@(Model.AssignedGate ?? "-")</dd>
 
     <dt class="col-sm-3">Joining Date</dt>
-    <dd class="col-sm-9">@Model.JoiningDate.ToString("yyyy-MM-dd")</dd>
+    <dd class="col-sm-9">@Model.JoiningDate.ToString("dd-MM-yyyy")</dd>
 
-    <dt class="col-sm-3">Created On</dt>
-    <dd class="col-sm-9">@Model.CreatedOn.ToString("yyyy-MM-dd HH:mm")</dd>
+    <dt class="col-sm-3">Active</dt>
+    <dd class="col-sm-9">@(Model.IsActive ? "Yes" : "No")</dd>
 </dl>
 
 <a asp-action="Edit" asp-route-id="@Model.GuardId" class="btn btn-primary">Edit</a>

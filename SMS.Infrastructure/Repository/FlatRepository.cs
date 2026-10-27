@@ -1,5 +1,4 @@
-﻿
-using Microsoft.Data.SqlClient;
+﻿using Microsoft.Data.SqlClient;
 using SMS.Domain;
 using System.Data;
 
@@ -14,42 +13,12 @@ namespace SMS.Infrastructure
             _connectionFactory = connectionFactory;
         }
 
-        private static Flat MapFlat(SqlDataReader reader)
-        {
-            return new Flat
-            {
-                FlatId = reader.GetInt64(reader.GetOrdinal("FlatId")),
-                WingId = reader.GetInt64(reader.GetOrdinal("WingId")),
-                FlatNumber = reader.GetString(reader.GetOrdinal("FlatNumber")),
-                FloorNumber = reader.GetInt32(reader.GetOrdinal("FloorNumber")),
-                SquareFeet = reader.GetDecimal(reader.GetOrdinal("SquareFeet")),
-                OccupancyStatus = reader.GetString(reader.GetOrdinal("OccupancyStatus")),
-                ParkingSlotNumber = reader.IsDBNull(reader.GetOrdinal("ParkingSlotNumber"))
-                    ? null
-                    : reader.GetString(reader.GetOrdinal("ParkingSlotNumber")),
-                Description = reader.IsDBNull(reader.GetOrdinal("Description"))
-                    ? null
-                    : reader.GetString(reader.GetOrdinal("Description")),
-                IsActive = reader.GetBoolean(reader.GetOrdinal("IsActive")),
-                CreatedOn = reader.GetDateTime(reader.GetOrdinal("CreatedOn")),
-                CreatedBy = reader.IsDBNull(reader.GetOrdinal("CreatedBy"))
-                    ? null
-                    : reader.GetInt64(reader.GetOrdinal("CreatedBy")),
-                ModifyOn = reader.IsDBNull(reader.GetOrdinal("ModifyOn"))
-                    ? null
-                    : reader.GetDateTime(reader.GetOrdinal("ModifyOn")),
-                ModifyBy = reader.IsDBNull(reader.GetOrdinal("ModifyBy"))
-                    ? null
-                    : reader.GetInt64(reader.GetOrdinal("ModifyBy"))
-            };
-        }
-
         public async Task<IEnumerable<Flat>> GetAllAsync()
         {
             var flats = new List<Flat>();
 
             using var connection = _connectionFactory.CreateConnection();
-            using var command = new SqlCommand("GetAllFlats", connection);
+            using var command = new SqlCommand("dbo.GetAllFlats", connection);
 
             command.CommandType = CommandType.StoredProcedure;
 
@@ -68,7 +37,7 @@ namespace SMS.Infrastructure
         public async Task<Flat?> GetByIdAsync(long flatId)
         {
             using var connection = _connectionFactory.CreateConnection();
-            using var command = new SqlCommand("GetFlatById", connection);
+            using var command = new SqlCommand("dbo.GetFlatById", connection);
 
             command.CommandType = CommandType.StoredProcedure;
             command.Parameters.Add("@FlatId", SqlDbType.BigInt).Value = flatId;
@@ -77,32 +46,22 @@ namespace SMS.Infrastructure
 
             using var reader = await command.ExecuteReaderAsync();
 
-            return await reader.ReadAsync() ? MapFlat(reader) : null;
+            if (await reader.ReadAsync())
+            {
+                return MapFlat(reader);
+            }
+
+            return null;
         }
 
         public async Task<long> CreateAsync(Flat flat)
         {
             using var connection = _connectionFactory.CreateConnection();
-            using var command = new SqlCommand("InsertFlat", connection);
+            using var command = new SqlCommand("dbo.InsertFlat", connection);
 
             command.CommandType = CommandType.StoredProcedure;
 
-            command.Parameters.Add("@WingId", SqlDbType.BigInt).Value = flat.WingId;
-            command.Parameters.Add("@FlatNumber", SqlDbType.NVarChar, 10).Value = flat.FlatNumber;
-            command.Parameters.Add("@FloorNumber", SqlDbType.Int).Value = flat.FloorNumber;
-
-            var squareFeetParameter = command.Parameters.Add("@SquareFeet", SqlDbType.Decimal);
-            squareFeetParameter.Precision = 18;
-            squareFeetParameter.Scale = 2;
-            squareFeetParameter.Value = flat.SquareFeet;
-
-            command.Parameters.Add("@OccupancyStatus", SqlDbType.NVarChar, 20).Value = flat.OccupancyStatus;
-            command.Parameters.Add("@ParkingSlotNumber", SqlDbType.NVarChar, 20).Value =
-                (object?)flat.ParkingSlotNumber ?? DBNull.Value;
-            command.Parameters.Add("@Description", SqlDbType.NVarChar, 500).Value =
-                (object?)flat.Description ?? DBNull.Value;
-            command.Parameters.Add("@CreatedBy", SqlDbType.BigInt).Value =
-                (object?)flat.CreatedBy ?? DBNull.Value;
+            AddFlatParameters(command, flat, false);
 
             await connection.OpenAsync();
 
@@ -114,27 +73,30 @@ namespace SMS.Infrastructure
         public async Task<bool> UpdateAsync(Flat flat)
         {
             using var connection = _connectionFactory.CreateConnection();
-            using var command = new SqlCommand("UpdateFlat", connection);
+            using var command = new SqlCommand("dbo.UpdateFlat", connection);
+
+            command.CommandType = CommandType.StoredProcedure;
+            command.Parameters.Add("@FlatId", SqlDbType.BigInt).Value = flat.FlatId;
+
+            AddFlatParameters(command, flat, true);
+
+            await connection.OpenAsync();
+            var result = await command.ExecuteScalarAsync();
+            return Convert.ToInt32(result) > 0;
+        }
+
+        public async Task<bool> DeleteAsync(long flatId)
+        {
+            using var connection = _connectionFactory.CreateConnection();
+            using var command = new SqlCommand("dbo.DeleteFlat", connection);
 
             command.CommandType = CommandType.StoredProcedure;
 
-            command.Parameters.Add("@FlatId", SqlDbType.BigInt).Value = flat.FlatId;
-            command.Parameters.Add("@WingId", SqlDbType.BigInt).Value = flat.WingId;
-            command.Parameters.Add("@FlatNumber", SqlDbType.NVarChar, 10).Value = flat.FlatNumber;
-            command.Parameters.Add("@FloorNumber", SqlDbType.Int).Value = flat.FloorNumber;
+            command.Parameters.Add("@FlatId", SqlDbType.BigInt).Value =
+                flatId;
 
-            var squareFeetParameter = command.Parameters.Add("@SquareFeet", SqlDbType.Decimal);
-            squareFeetParameter.Precision = 18;
-            squareFeetParameter.Scale = 2;
-            squareFeetParameter.Value = flat.SquareFeet;
-
-            command.Parameters.Add("@OccupancyStatus", SqlDbType.NVarChar, 20).Value = flat.OccupancyStatus;
-            command.Parameters.Add("@ParkingSlotNumber", SqlDbType.NVarChar, 20).Value =
-                (object?)flat.ParkingSlotNumber ?? DBNull.Value;
-            command.Parameters.Add("@Description", SqlDbType.NVarChar, 500).Value =
-                (object?)flat.Description ?? DBNull.Value;
             command.Parameters.Add("@ModifyBy", SqlDbType.BigInt).Value =
-                (object?)flat.ModifyBy ?? DBNull.Value;
+                DBNull.Value;
 
             await connection.OpenAsync();
 
@@ -143,19 +105,69 @@ namespace SMS.Infrastructure
             return Convert.ToInt32(result) > 0;
         }
 
-        public async Task<bool> DeleteAsync(long flatId)
+        private static void AddFlatParameters(
+            SqlCommand command,
+            Flat flat,
+            bool isUpdate)
         {
-            using var connection = _connectionFactory.CreateConnection();
-            using var command = new SqlCommand("DeleteFlat", connection);
+            command.Parameters.Add("@WingId", SqlDbType.BigInt).Value = flat.WingId;
+            command.Parameters.Add("@FlatNumber", SqlDbType.NVarChar, 50).Value = flat.FlatNumber;
+            command.Parameters.Add("@FloorNumber", SqlDbType.Int).Value = flat.FloorNumber;
 
-            command.CommandType = CommandType.StoredProcedure;
-            command.Parameters.Add("@FlatId", SqlDbType.BigInt).Value = flatId;
+            var squareFeet = command.Parameters.Add("@SquareFeet", SqlDbType.Decimal);
+            squareFeet.Precision = 18;
+            squareFeet.Scale = 2;
+            squareFeet.Value = flat.SquareFeet;
 
-            await connection.OpenAsync();
+            command.Parameters.Add("@OccupancyStatus", SqlDbType.NVarChar, 50).Value = flat.OccupancyStatus;
+            command.Parameters.Add("@ParkingSlotNumber", SqlDbType.NVarChar, 50).Value =
+                (object?)flat.ParkingSlotNumber ?? DBNull.Value;
 
-            var result = await command.ExecuteScalarAsync();
+            command.Parameters.Add("@Description", SqlDbType.NVarChar, 1000).Value =
+                (object?)flat.Description ?? DBNull.Value;
 
-            return Convert.ToInt32(result) > 0;
+            if (isUpdate)
+            {
+                command.Parameters.Add("@ModifyBy", SqlDbType.BigInt).Value =
+                    DBNull.Value;
+            }
+            else
+            {
+                command.Parameters.Add("@CreatedBy", SqlDbType.BigInt).Value =
+                    DBNull.Value;
+            }
+        }
+
+        private static Flat MapFlat(SqlDataReader reader)
+        {
+            return new Flat
+            {
+                FlatId = Convert.ToInt64(reader["FlatId"]),
+                WingId = Convert.ToInt64(reader["WingId"]),
+                WingName = reader["WingName"].ToString() ?? string.Empty,
+                FlatNumber = reader["FlatNumber"].ToString() ?? string.Empty,
+                FloorNumber = Convert.ToInt32(reader["FloorNumber"]),
+                SquareFeet = Convert.ToDecimal(reader["SquareFeet"]),
+                OccupancyStatus =
+                    reader["OccupancyStatus"].ToString() ?? string.Empty,
+                ParkingSlotNumber = reader["ParkingSlotNumber"] == DBNull.Value
+                    ? null
+                    : reader["ParkingSlotNumber"].ToString(),
+                Description = reader["Description"] == DBNull.Value
+                    ? null
+                    : reader["Description"].ToString(),
+                IsActive = Convert.ToBoolean(reader["IsActive"]),
+                CreatedOn = Convert.ToDateTime(reader["CreatedOn"]),
+                CreatedBy = reader["CreatedBy"] == DBNull.Value
+                    ? null
+                    : Convert.ToInt64(reader["CreatedBy"]),
+                ModifyOn = reader["ModifyOn"] == DBNull.Value
+                    ? null
+                    : Convert.ToDateTime(reader["ModifyOn"]),
+                ModifyBy = reader["ModifyBy"] == DBNull.Value
+                    ? null
+                    : Convert.ToInt64(reader["ModifyBy"])
+            };
         }
     }
 }

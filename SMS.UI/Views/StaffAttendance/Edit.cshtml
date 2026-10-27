@@ -1,53 +1,123 @@
 ﻿@model SMS.Application.StaffAttendanceDto
 
-<h2>Edit Staff Attendance</h2>
+@{
+    ViewData["Title"] = "Edit Staff Attendance";
+}
 
-<form asp-action="Edit" asp-route-id="@Model.AttendanceId" method="post">
-    @Html.AntiForgeryToken()
-    <input asp-for="AttendanceId" type="hidden" />
+<div class="container mt-4">
+    <h2>Edit Staff Attendance</h2>
+    <hr />
 
-    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+    <form asp-action="Edit"
+          asp-route-id="@Model.AttendanceId"
+          method="post">
+        @Html.AntiForgeryToken()
 
-    <div class="mb-3">
-        <label asp-for="StaffName" class="form-label"></label>
-        <input asp-for="StaffName" class="form-control" maxlength="100" />
-        <span asp-validation-for="StaffName" class="text-danger"></span>
-    </div>
+        <input asp-for="AttendanceId" type="hidden" />
 
-    <div class="mb-3">
-        <label asp-for="StaffRole" class="form-label"></label>
-        <input asp-for="StaffRole" class="form-control" maxlength="50" />
-        <span asp-validation-for="StaffRole" class="text-danger"></span>
-    </div>
+        <div asp-validation-summary="ModelOnly"
+             class="text-danger mb-3"></div>
 
-    <div class="mb-3">
-        <label asp-for="FlatId" class="form-label"></label>
-        <input asp-for="FlatId" type="number" min="1" class="form-control" />
-        <span asp-validation-for="FlatId" class="text-danger"></span>
-    </div>
+        <div class="mb-3">
+            <label asp-for="TenantId" class="form-label">Society</label>
+            <select asp-for="TenantId"
+                    asp-items="ViewBag.Tenants"
+                    class="form-select"
+                    id="TenantId">
+                <option value="">-- Select Society --</option>
+            </select>
+            <span asp-validation-for="TenantId" class="text-danger"></span>
+        </div>
 
-    <div class="mb-3">
-        <label asp-for="CheckInTime" class="form-label"></label>
-        <input asp-for="CheckInTime" type="datetime-local" class="form-control" />
-        <span asp-validation-for="CheckInTime" class="text-danger"></span>
-    </div>
+        <div class="mb-3">
+            <label asp-for="StaffName" class="form-label"></label>
+            <input asp-for="StaffName" class="form-control" />
+            <span asp-validation-for="StaffName" class="text-danger"></span>
+        </div>
 
-    <div class="mb-3">
-        <label asp-for="CheckOutTime" class="form-label"></label>
-        <input asp-for="CheckOutTime" type="datetime-local" class="form-control" />
-        <span asp-validation-for="CheckOutTime" class="text-danger"></span>
-    </div>
+        <div class="mb-3">
+            <label asp-for="StaffRole" class="form-label"></label>
+            <select asp-for="StaffRole" class="form-select">
+                <option value="">-- Select Role --</option>
+                <option value="Cleaner">Cleaner</option>
+                <option value="Electrician">Electrician</option>
+                <option value="Gardener">Gardener</option>
+                <option value="Plumber">Plumber</option>
+                <option value="Security Guard">Security Guard</option>
+                <option value="Other">Other</option>
+            </select>
+            <span asp-validation-for="StaffRole" class="text-danger"></span>
+        </div>
 
-    <div class="mb-3">
-        <label asp-for="TenantId" class="form-label"></label>
-        <input asp-for="TenantId" type="number" min="1" class="form-control" />
-        <span asp-validation-for="TenantId" class="text-danger"></span>
-    </div>
+        <div class="mb-3">
+            <label asp-for="FlatId" class="form-label">Flat</label>
+            <select asp-for="FlatId"
+                    asp-items="ViewBag.Flats"
+                    class="form-select"
+                    id="FlatId">
+                <option value="">-- Select Flat --</option>
+            </select>
+            <span asp-validation-for="FlatId" class="text-danger"></span>
+        </div>
 
-    <button type="submit" class="btn btn-primary">Update</button>
-    <a asp-action="Index" class="btn btn-secondary">Back</a>
-</form>
+        <div class="mb-3">
+            <label asp-for="CheckInTime" class="form-label"></label>
+            <input asp-for="CheckInTime"
+                   type="datetime-local"
+                   class="form-control"
+                   asp-format="{0:yyyy-MM-ddTHH:mm}" />
+            <span asp-validation-for="CheckInTime" class="text-danger"></span>
+        </div>
+
+        <div class="mb-3">
+            <label asp-for="CheckOutTime" class="form-label"></label>
+            <input asp-for="CheckOutTime"
+                   type="datetime-local"
+                   class="form-control"
+                   asp-format="{0:yyyy-MM-ddTHH:mm}" />
+            <span asp-validation-for="CheckOutTime" class="text-danger"></span>
+        </div>
+
+        <button type="submit" class="btn btn-primary">Update</button>
+        <a asp-action="Index" class="btn btn-secondary">Back</a>
+    </form>
+</div>
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
+
+    <script>
+        $(document).ready(function () {
+            $("#TenantId").change(function () {
+                var tenantId = $(this).val();
+                var flatDropdown = $("#FlatId");
+
+                flatDropdown.empty();
+                flatDropdown.append(
+                    $("<option>").val("").text("-- Select Flat --")
+                );
+
+                if (!tenantId) {
+                    return;
+                }
+
+                $.getJSON(
+                    '@Url.Action("GetFlatsByTenant", "StaffAttendance")',
+                    { tenantId: tenantId },
+                    function (flats) {
+                        $.each(flats, function (index, flat) {
+                            var displayName =
+                                flat.wingName + " - " + flat.flatNumber;
+
+                            flatDropdown.append(
+                                $("<option>")
+                                    .val(flat.flatId)
+                                    .text(displayName)
+                            );
+                        });
+                    }
+                );
+            });
+        });
+    </script>
 }

@@ -1,189 +1,210 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using SMS.Application;
 
 namespace SMS.UI.Controllers
 {
     public class MaintenanceBillsController : Controller
     {
-        private readonly IMaintenanceBillService _service;
+        private readonly IMaintenanceBillService _maintenanceBillService;
+        private readonly ITenantService _tenantService;
 
-        public MaintenanceBillsController(IMaintenanceBillService service)
+        public MaintenanceBillsController(
+            IMaintenanceBillService maintenanceBillService,
+            ITenantService tenantService)
         {
-            _service = service;
+            _maintenanceBillService = maintenanceBillService;
+            _tenantService = tenantService;
+        }
+
+        private long? GetUserId()
+        {
+            var userId = HttpContext.Session.GetString("UserId");
+
+            return long.TryParse(userId, out var id) ? id : null;
+        }
+
+        private long? GetTenantId()
+        {
+            var tenantId = User.FindFirst("TenantId")?.Value;
+
+            return long.TryParse(tenantId, out var id) ? id : null;
         }
 
         public async Task<IActionResult> Index()
         {
-            var bills = await _service.GetAllAsync();
+            var tenantId = GetTenantId();
+
+            if (tenantId == null)
+                return RedirectToAction("Login", "Account");
+
+            var bills = await _maintenanceBillService.GetByTenantAsync(
+                tenantId.Value);
+
             return View(bills);
         }
 
         public async Task<IActionResult> Details(long id)
         {
-            var bill = await _service.GetByIdAsync(id);
+            var tenantId = GetTenantId();
 
-            if (bill == null)
-            {
+            if (tenantId == null)
+                return RedirectToAction("Login", "Account");
+
+            var dto = await _maintenanceBillService.GetByIdAsync(id);
+
+            if (dto == null || dto.TenantId != tenantId.Value)
                 return NotFound();
-            }
 
-            return View(bill);
+            return View(dto);
         }
 
-        [HttpGet]
-        public IActionResult Create()
+        public async Task<IActionResult> Create()
         {
-            return View(new MaintenanceBillDto
+            var tenantId = GetTenantId();
+
+            if (tenantId == null)
+                return RedirectToAction("Login", "Account");
+
+            await LoadFlatsAsync(tenantId.Value);
+
+            var dto = new MaintenanceBillDto
             {
+                TenantId = tenantId.Value,
                 BillingMonth = DateTime.Today.Month,
                 BillingYear = DateTime.Today.Year,
                 DueDate = DateTime.Today.AddDays(10),
-                PaymentStatus = "Pending",
-                IsActive = true
-            });
+                PaymentStatus = "Pending"
+            };
+
+            return View(dto);
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(MaintenanceBillDto dto)
         {
-            ValidateBill(dto);
+            var tenantId = GetTenantId();
+
+            if (tenantId == null)
+                return RedirectToAction("Login", "Account");
+
+            dto.TenantId = tenantId.Value;
 
             if (!ModelState.IsValid)
             {
+                await LoadFlatsAsync(tenantId.Value);
                 return View(dto);
             }
 
-            await _service.CreateAsync(dto);
-            return RedirectToAction(nameof(Index));
+            try
+            {
+                var billId = await _maintenanceBillService.CreateAsync(
+                    dto, GetUserId());
+
+                TempData["SuccessMessage"] =
+                    $"Maintenance bill created successfully. Bill ID: {billId}";
+
+                return RedirectToAction(nameof(Index));
+            }
+            catch (Microsoft.Data.SqlClient.SqlException ex)
+            {
+                ModelState.AddModelError(string.Empty, ex.Message);
+                await LoadFlatsAsync(tenantId.Value);
+                return View(dto);
+            }
         }
 
-        [HttpGet]
         public async Task<IActionResult> Edit(long id)
         {
-            var bill = await _service.GetByIdAsync(id);
+            var tenantId = GetTenantId();
 
-            if (bill == null)
-            {
+            if (tenantId == null)
+                return RedirectToAction("Login", "Account");
+
+            var dto = await _maintenanceBillService.GetByIdAsync(id);
+
+            if (dto == null || dto.TenantId != tenantId.Value)
                 return NotFound();
-            }
 
-            return View(bill);
+            await LoadFlatsAsync(tenantId.Value);
+
+            return View(dto);
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(long id, MaintenanceBillDto dto)
+        public async Task<IActionResult> Edit(
+            long id, MaintenanceBillDto dto)
         {
-            if (id != dto.BillId)
-            {
-                return BadRequest();
-            }
+            var tenantId = GetTenantId();
 
-            ValidateBill(dto);
+            if (tenantId == null)
+                return RedirectToAction("Login", "Account");
+
+            if (id != dto.BillId)
+                return BadRequest();
+
+            dto.TenantId = tenantId.Value;
 
             if (!ModelState.IsValid)
             {
+                await LoadFlatsAsync(tenantId.Value);
                 return View(dto);
             }
 
-            var updated = await _service.UpdateAsync(dto);
-
-            if (!updated)
+            try
             {
-                return NotFound();
-            }
+                var updated = await _maintenanceBillService.UpdateAsync(
+                    dto, GetUserId());
 
-            return RedirectToAction(nameof(Index));
+                if (!updated)
+                    return NotFound();
+
+                TempData["SuccessMessage"] =
+                    "Maintenance bill updated successfully.";
+
+                return RedirectToAction(nameof(Index));
+            }
+            catch (Microsoft.Data.SqlClient.SqlException ex)
+            {
+                ModelState.AddModelError(string.Empty, ex.Message);
+                await LoadFlatsAsync(tenantId.Value);
+                return View(dto);
+            }
         }
 
-        [HttpGet]
+        [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Delete(long id)
         {
-            var bill = await _service.GetByIdAsync(id);
+            var tenantId = GetTenantId();
 
-            if (bill == null)
-            {
-                return NotFound();
-            }
+            if (tenantId == null)
+                return RedirectToAction("Login", "Account");
 
-            return View(bill);
-        }
+            var deleted = await _maintenanceBillService.DeleteAsync(
+                id, GetUserId(), tenantId.Value);
 
-        [HttpPost, ActionName("Delete")]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteConfirmed(long id)
-        {
-            var deleted = await _service.DeleteAsync(id);
-
-            if (!deleted)
-            {
-                return NotFound();
-            }
+            TempData[deleted ? "SuccessMessage" : "ErrorMessage"] =
+                deleted
+                    ? "Maintenance bill deleted successfully."
+                    : "Maintenance bill not found.";
 
             return RedirectToAction(nameof(Index));
         }
 
-        private void ValidateBill(MaintenanceBillDto dto)
+        private async Task LoadFlatsAsync(long tenantId)
         {
-            if (dto.FlatId <= 0)
-            {
-                ModelState.AddModelError(nameof(dto.FlatId), "Enter a valid Flat ID.");
-            }
+            var flats = await _maintenanceBillService.GetFlatsByTenantAsync(tenantId);
 
-            if (dto.BillingMonth < 1 || dto.BillingMonth > 12)
+            ViewBag.Flats = flats.Select(flat => new SelectListItem
             {
-                ModelState.AddModelError(nameof(dto.BillingMonth), "Month must be between 1 and 12.");
-            }
-
-            if (dto.BillingYear < 2000 || dto.BillingYear > 9999)
-            {
-                ModelState.AddModelError(nameof(dto.BillingYear), "Enter a valid billing year.");
-            }
-
-            if (dto.BaseAmount < 0)
-            {
-                ModelState.AddModelError(nameof(dto.BaseAmount), "Base amount cannot be negative.");
-            }
-
-            if (dto.PenaltyAmount < 0)
-            {
-                ModelState.AddModelError(nameof(dto.PenaltyAmount), "Penalty amount cannot be negative.");
-            }
-
-            if (dto.BaseAmount + dto.PenaltyAmount > 9999999999999999.99m)
-            {
-                ModelState.AddModelError(nameof(dto.BaseAmount), "The total amount is too large.");
-            }
-
-            if (dto.DueDate == default)
-            {
-                ModelState.AddModelError(nameof(dto.DueDate), "Due date is required.");
-            }
-
-            if (string.IsNullOrWhiteSpace(dto.PaymentStatus))
-            {
-                ModelState.AddModelError(nameof(dto.PaymentStatus), "Payment status is required.");
-            }
-            else if (dto.PaymentStatus.Trim().Length > 20)
-            {
-                ModelState.AddModelError(nameof(dto.PaymentStatus), "Payment status cannot exceed 20 characters.");
-            }
-
-            if (dto.TransactionRef?.Length > 100)
-            {
-                ModelState.AddModelError(nameof(dto.TransactionRef), "Transaction reference cannot exceed 100 characters.");
-            }
-
-            if (dto.Description?.Length > 500)
-            {
-                ModelState.AddModelError(nameof(dto.Description), "Description cannot exceed 500 characters.");
-            }
-
-            if (dto.TenantId <= 0)
-            {
-                ModelState.AddModelError(nameof(dto.TenantId), "Enter a valid Tenant ID.");
-            }
+                Value = flat.FlatId.ToString(),
+                Text = flat.FlatNumber
+            }).ToList();
         }
+
     }
 }

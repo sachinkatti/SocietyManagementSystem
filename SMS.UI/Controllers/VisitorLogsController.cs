@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using SMS.Application;
 
@@ -7,228 +8,198 @@ namespace SMS.UI.Controllers
     public class VisitorLogsController : Controller
     {
         private readonly IVisitorLogService _visitorLogService;
-        private readonly IFlatService _flatService;
-        private readonly ISecurityGuardService _securityGuardService;
-        private readonly IUserService _userService;
+        private readonly ITenantService _tenantService;
 
         public VisitorLogsController(
             IVisitorLogService visitorLogService,
-            IFlatService flatService,
-            ISecurityGuardService securityGuardService,
-            IUserService userService)
+            ITenantService tenantService)
         {
             _visitorLogService = visitorLogService;
-            _flatService = flatService;
-            _securityGuardService = securityGuardService;
-            _userService = userService;
+            _tenantService = tenantService;
         }
 
+        // 1. Display all visitor logs
         public async Task<IActionResult> Index()
         {
-            var logs = await _visitorLogService.GetAllAsync();
-            var flats = await _flatService.GetAllAsync();
-            var guards = await _securityGuardService.GetAllAsync();
-            var users = await _userService.GetActiveUsersForDropdownAsync();
-
-            var flatLookup = flats.ToDictionary(f => f.FlatId, f => f.FlatNumber);
-            var guardLookup = guards.ToDictionary(g => g.GuardId, g => g.UserId);
-            var userLookup = users.ToDictionary(u => u.UserId);
-
-            foreach (var log in logs)
-            {
-                log.FlatNumber = flatLookup.TryGetValue(log.VisitingFlatId, out var flatNumber)
-                    ? flatNumber : "Unknown";
-
-                if (log.LoggedByGuardId.HasValue &&
-                    guardLookup.TryGetValue(log.LoggedByGuardId.Value, out var userId) &&
-                    userLookup.TryGetValue(userId, out var user))
-                {
-                    log.GuardName = $"{user.FirstName} {user.LastName}";
-                }
-                else
-                {
-                    log.GuardName = "Not assigned";
-                }
-            }
-
-            return View(logs);
+            var visitorLogs = await _visitorLogService.GetAllAsync();
+            return View(visitorLogs);
         }
 
+        // 2. Display visitor log details
         public async Task<IActionResult> Details(long id)
         {
-            var dto = await _visitorLogService.GetByIdAsync(id);
+            var visitorLog = await _visitorLogService.GetByIdAsync(id);
 
-            if (dto == null)
+            if (visitorLog == null)
                 return NotFound();
 
-            await PopulateDisplayNames(dto);
-            return View(dto);
+            return View(visitorLog);
         }
 
+        // 3. Open create form
+        [HttpGet]
         public async Task<IActionResult> Create()
         {
-            var dto = new VisitorLogDto
-            {
-                EntryTime = DateTime.Now,
-                ApprovalMethod = "Guard"
-            };
+            await LoadTenantsAsync();
 
-            await PopulateDropdowns();
-            return View(dto);
+            return View(new VisitorLogDto
+            {
+                EntryTime = DateTime.Now
+            });
         }
 
+        // 4. Save new visitor log
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(VisitorLogDto dto)
+        public async Task<IActionResult> Create(VisitorLogDto visitorLog)
         {
-            ValidateVisitorLog(dto);
-
             if (!ModelState.IsValid)
             {
-                await PopulateDropdowns(dto.VisitingFlatId, dto.LoggedByGuardId);
-                return View(dto);
+                await LoadTenantsAsync();
+                return View(visitorLog);
             }
 
-            dto.IsActive = true;
-            await _visitorLogService.CreateAsync(dto);
+            try
+            {
+                var visitorId = await _visitorLogService.CreateAsync(visitorLog);
 
-            TempData["SuccessMessage"] = "Visitor log created successfully.";
-            return RedirectToAction(nameof(Index));
+                TempData["SuccessMessage"] =
+                    $"Visitor log created successfully. ID: {visitorId}";
+
+                return RedirectToAction(nameof(Index));
+            }
+            catch (Exception ex)
+            {
+                ModelState.AddModelError(
+                    string.Empty, ex.Message);
+
+                await LoadTenantsAsync();
+                return View(visitorLog);
+            }
         }
 
+        // 5. Open edit form
+        [HttpGet]
         public async Task<IActionResult> Edit(long id)
         {
-            var dto = await _visitorLogService.GetByIdAsync(id);
+            var visitorLog = await _visitorLogService.GetByIdAsync(id);
 
-            if (dto == null)
+            if (visitorLog == null)
                 return NotFound();
 
-            await PopulateDropdowns(dto.VisitingFlatId, dto.LoggedByGuardId);
-            return View(dto);
+            await LoadTenantsAsync();
+
+            return View(visitorLog);
         }
 
+        // 6. Update visitor log
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(long id, VisitorLogDto dto)
+        public async Task<IActionResult> Edit(
+            long id, VisitorLogDto visitorLog)
         {
-            if (id != dto.VisitorId)
+            if (id != visitorLog.VisitorId)
                 return BadRequest();
-
-            ValidateVisitorLog(dto);
 
             if (!ModelState.IsValid)
             {
-                await PopulateDropdowns(dto.VisitingFlatId, dto.LoggedByGuardId);
-                return View(dto);
+                await LoadTenantsAsync();
+                return View(visitorLog);
             }
 
-            var updated = await _visitorLogService.UpdateAsync(dto);
+            try
+            {
+                var updated = await _visitorLogService.UpdateAsync(visitorLog);
 
-            if (!updated)
-                return NotFound();
+                if (!updated)
+                    return NotFound();
 
-            TempData["SuccessMessage"] = "Visitor log updated successfully.";
-            return RedirectToAction(nameof(Index));
+                TempData["SuccessMessage"] =
+                    "Visitor log updated successfully.";
+
+                return RedirectToAction(nameof(Index));
+            }
+            catch (Exception ex)
+            {
+                ModelState.AddModelError(
+                    string.Empty, ex.Message);
+
+                await LoadTenantsAsync();
+                return View(visitorLog);
+            }
         }
 
+        // 7. Open delete confirmation
+        [HttpGet]
         public async Task<IActionResult> Delete(long id)
         {
-            var dto = await _visitorLogService.GetByIdAsync(id);
+            var visitorLog = await _visitorLogService.GetByIdAsync(id);
 
-            if (dto == null)
+            if (visitorLog == null)
                 return NotFound();
 
-            await PopulateDisplayNames(dto);
-            return View(dto);
+            return View(visitorLog);
         }
 
+        // 8. Soft-delete visitor log
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(long id)
         {
-            var deleted = await _visitorLogService.DeleteAsync(id, null);
+            var deleted = await _visitorLogService.DeleteAsync(id);
 
             if (!deleted)
                 return NotFound();
 
-            TempData["SuccessMessage"] = "Visitor log deleted successfully.";
+            TempData["SuccessMessage"] =
+                "Visitor log deleted successfully.";
+
             return RedirectToAction(nameof(Index));
         }
 
-        private void ValidateVisitorLog(VisitorLogDto dto)
+        // 9. AJAX: get active flats for selected tenant
+        [HttpGet]
+        public async Task<IActionResult> GetFlatsByTenant(long tenantId)
         {
-            if (string.IsNullOrWhiteSpace(dto.VisitorName))
-                ModelState.AddModelError(nameof(dto.VisitorName), "Visitor name is required.");
-            else if (dto.VisitorName.Length > 100)
-                ModelState.AddModelError(nameof(dto.VisitorName), "Visitor name cannot exceed 100 characters.");
+            if (tenantId <= 0)
+                return Json(Array.Empty<object>());
 
-            if (dto.PhoneNumber?.Length > 15)
-                ModelState.AddModelError(nameof(dto.PhoneNumber), "Phone number cannot exceed 15 characters.");
+            var flats = await _visitorLogService
+                .GetFlatsByTenantAsync(tenantId);
 
-            if (dto.VisitingFlatId <= 0)
-                ModelState.AddModelError(nameof(dto.VisitingFlatId), "Please select a flat.");
-
-            if (string.IsNullOrWhiteSpace(dto.Purpose))
-                ModelState.AddModelError(nameof(dto.Purpose), "Purpose is required.");
-            else if (dto.Purpose.Length > 50)
-                ModelState.AddModelError(nameof(dto.Purpose), "Purpose cannot exceed 50 characters.");
-
-            if (dto.VehicleNumber?.Length > 20)
-                ModelState.AddModelError(nameof(dto.VehicleNumber), "Vehicle number cannot exceed 20 characters.");
-
-            if (string.IsNullOrWhiteSpace(dto.ApprovalMethod))
-                ModelState.AddModelError(nameof(dto.ApprovalMethod), "Approval method is required.");
-            else if (dto.ApprovalMethod.Length > 20)
-                ModelState.AddModelError(nameof(dto.ApprovalMethod), "Approval method cannot exceed 20 characters.");
-
-            if (dto.EntryTime == default)
-                ModelState.AddModelError(nameof(dto.EntryTime), "Entry time is required.");
-
-            if (dto.ExitTime.HasValue && dto.ExitTime.Value < dto.EntryTime)
-                ModelState.AddModelError(nameof(dto.ExitTime), "Exit time cannot be earlier than entry time.");
-
-            if (dto.Description?.Length > 500)
-                ModelState.AddModelError(nameof(dto.Description), "Description cannot exceed 500 characters.");
-        }
-
-        private async Task PopulateDropdowns(long? selectedFlatId = null, long? selectedGuardId = null)
-        {
-            var flats = await _flatService.GetAllAsync();
-            var guards = await _securityGuardService.GetAllAsync();
-            var users = await _userService.GetActiveUsersForDropdownAsync();
-
-            ViewBag.Flats = new SelectList(
-                flats, "FlatId", "FlatNumber", selectedFlatId);
-
-            var userLookup = users.ToDictionary(u => u.UserId);
-
-            ViewBag.Guards = guards.Select(g => new SelectListItem
+            return Json(flats.Select(f => new
             {
-                Value = g.GuardId.ToString(),
-                Text = userLookup.TryGetValue(g.UserId, out var user)
-                    ? $"{user.FirstName} {user.LastName}"
-                    : $"Guard {g.GuardId}",
-                Selected = selectedGuardId == g.GuardId
-            }).ToList();
+                id = f.FlatId,
+                text = $"{f.FlatNumber} - {f.WingName}"
+            }));
         }
 
-        private async Task PopulateDisplayNames(VisitorLogDto dto)
+        // 10. AJAX: get active guards for selected tenant
+        [HttpGet]
+        public async Task<IActionResult> GetGuardsByTenant(long tenantId)
         {
-            var flats = await _flatService.GetAllAsync();
-            var guards = await _securityGuardService.GetAllAsync();
-            var users = await _userService.GetActiveUsersForDropdownAsync();
+            if (tenantId <= 0)
+                return Json(Array.Empty<object>());
 
-            dto.FlatNumber = flats.FirstOrDefault(f => f.FlatId == dto.VisitingFlatId)?.FlatNumber;
+            var guards = await _visitorLogService
+                .GetGuardsByTenantAsync(tenantId);
 
-            var guard = dto.LoggedByGuardId.HasValue
-                ? guards.FirstOrDefault(g => g.GuardId == dto.LoggedByGuardId.Value)
-                : null;
+            return Json(guards.Select(g => new
+            {
+                id = g.GuardId,
+                text = g.GuardName
+            }));
+        }
 
-            var user = guard == null ? null : users.FirstOrDefault(u => u.UserId == guard.UserId);
+        // Load tenant dropdown
+        private async Task LoadTenantsAsync()
+        {
+            var tenants = await _tenantService.GetAllAsync();
 
-            dto.GuardName = user == null
-                ? "Not assigned"
-                : $"{user.FirstName} {user.LastName}";
+            ViewBag.Tenants = new SelectList(
+                tenants,
+                "TenantId",
+                "TenantName");
         }
     }
 }

@@ -1,0 +1,87 @@
+﻿@model SMS.Application.FlatDto
+
+@{
+    ViewData["Title"] = "Create Flat";
+}
+
+<div class="container-fluid">
+    <h2>Create Flat</h2>
+
+    <div class="card">
+        <div class="card-body">
+            <form asp-action="Create" method="post">
+                @Html.AntiForgeryToken()
+
+                <div asp-validation-summary="ModelOnly"
+                     class="text-danger mb-3"></div>
+
+                <div class="mb-3">
+                    <label asp-for="WingId" class="form-label">Wing</label>
+                    <select asp-for="WingId"
+                            asp-items="ViewBag.Wings"
+                            class="form-select">
+                        <option value="">-- Select Wing --</option>
+                    </select>
+                    <span asp-validation-for="WingId"
+                          class="text-danger"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="FlatNumber" class="form-label"></label>
+                    <input asp-for="FlatNumber" class="form-control" />
+                    <span asp-validation-for="FlatNumber"
+                          class="text-danger"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="FloorNumber" class="form-label"></label>
+                    <input asp-for="FloorNumber" type="number"
+                           min="0" class="form-control" />
+                    <span asp-validation-for="FloorNumber"
+                          class="text-danger"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="SquareFeet" class="form-label"></label>
+                    <input asp-for="SquareFeet" type="number"
+                           min="0.01" step="0.01" class="form-control" />
+                    <span asp-validation-for="SquareFeet"
+                          class="text-danger"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="OccupancyStatus" class="form-label"></label>
+                    <select asp-for="OccupancyStatus" class="form-select">
+                        <option value="">-- Select Occupancy --</option>
+                        <option value="Occupied">Occupied</option>
+                        <option value="Vacant">Vacant</option>
+                    </select>
+                    <span asp-validation-for="OccupancyStatus"
+                          class="text-danger"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="ParkingSlotNumber" class="form-label"></label>
+                    <input asp-for="ParkingSlotNumber" class="form-control" />
+                    <span asp-validation-for="ParkingSlotNumber"
+                          class="text-danger"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="Description" class="form-label"></label>
+                    <textarea asp-for="Description" rows="3"
+                              class="form-control"></textarea>
+                    <span asp-validation-for="Description"
+                          class="text-danger"></span>
+                </div>
+
+                <button type="submit" class="btn btn-primary">Save</button>
+                <a asp-action="Index" class="btn btn-secondary">Cancel</a>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

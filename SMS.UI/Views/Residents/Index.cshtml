@@ -6,41 +6,62 @@
 
 <h2>Residents</h2>
 
-@if (TempData["SuccessMessage"] != null)
-{
-    <div class="alert alert-success">@TempData["SuccessMessage"]</div>
-}
-
 <p>
     <a asp-action="Create" class="btn btn-primary">Add Resident</a>
 </p>
 
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success">
+        @TempData["SuccessMessage"]
+    </div>
+}
+
 <table class="table table-bordered table-striped">
     <thead>
         <tr>
-            <th>Resident ID</th>
-            <th>User ID</th>
-            <th>Flat ID</th>
+            <th>Name</th>
+            <th>Flat</th>
+            <th>Wing</th>
             <th>Resident Type</th>
-            <th>Move In Date</th>
+            <th>Move-in Date</th>
             <th>Emergency Contact</th>
             <th>Actions</th>
         </tr>
     </thead>
     <tbody>
-        @foreach (var resident in Model)
+        @if (Model.Any())
+        {
+            @foreach (var item in Model)
+            {
+                <tr>
+                    <td>@item.FullName</td>
+                    <td>@item.FlatNumber</td>
+                    <td>@item.WingName</td>
+                    <td>@item.ResidentType</td>
+                    <td>@item.MoveInDate.ToString("dd-MMM-yyyy")</td>
+                    <td>@item.EmergencyContact</td>
+                    <td>
+                        <a asp-action="Details"
+                           asp-route-id="@item.ResidentId"
+                           class="btn btn-info btn-sm">Details</a>
+
+                        <a asp-action="Edit"
+                           asp-route-id="@item.ResidentId"
+                           class="btn btn-warning btn-sm">Edit</a>
+
+                        <a asp-action="Delete"
+                           asp-route-id="@item.ResidentId"
+                           class="btn btn-danger btn-sm">Delete</a>
+                    </td>
+                </tr>
+            }
+        }
+        else
         {
             <tr>
-                <td>@resident.ResidentId</td>
-                <td>@resident.UserId</td>
-                <td>@resident.FlatId</td>
-                <td>@resident.ResidentType</td>
-                <td>@resident.MoveInDate.ToString("yyyy-MM-dd")</td>
-                <td>@resident.EmergencyContact</td>
-                <td>
-                    <a asp-action="Details" asp-route-id="@resident.ResidentId">Details</a> |
-                    <a asp-action="Edit" asp-route-id="@resident.ResidentId">Edit</a> |
-                    <a asp-action="Delete" asp-route-id="@resident.ResidentId">Delete</a>
+                <td colspan="7" class="text-center">
+                    No residents found.
                 </td>
             </tr>
         }

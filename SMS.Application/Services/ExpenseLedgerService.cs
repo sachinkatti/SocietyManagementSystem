@@ -7,82 +7,111 @@ namespace SMS.Application
     {
         private readonly IExpenseLedgerRepository _repository;
 
-        public ExpenseLedgerService(IExpenseLedgerRepository repository)
+        public ExpenseLedgerService(
+            IExpenseLedgerRepository repository)
         {
             _repository = repository;
         }
 
-        public async Task<IEnumerable<ExpenseLedgerDto>> GetAllAsync()
+        public async Task<List<ExpenseLedgerDto>> GetAllAsync()
         {
-            var ledgers = await _repository.GetAllAsync();
+            var entries = await _repository.GetAllAsync();
 
-            return ledgers.Select(MapToDto);
+            return entries.Select(MapToDto).ToList();
         }
 
         public async Task<ExpenseLedgerDto?> GetByIdAsync(long ledgerId)
         {
-            var ledger = await _repository.GetByIdAsync(ledgerId);
+            var entry = await _repository.GetByIdAsync(ledgerId);
 
-            return ledger == null ? null : MapToDto(ledger);
+            return entry == null ? null : MapToDto(entry);
         }
 
-        public async Task<long> CreateAsync(ExpenseLedgerDto dto)
+        public async Task<List<ExpenseLedgerDto>> GetByTenantAsync(
+            long tenantId)
         {
-            var ledger = new ExpenseLedger
-            {
-                EntryType = dto.EntryType.Trim(),
-                Category = dto.Category.Trim(),
-                Amount = dto.Amount,
-                Description = dto.Description?.Trim(),
-                EntryDate = dto.EntryDate.Date,
-                RecordedByAdminId = dto.RecordedByAdminId,
-                CreatedBy = dto.CreatedBy,
-                TenantId = dto.TenantId
-            };
+            var entries = await _repository.GetByTenantAsync(tenantId);
 
-            return await _repository.CreateAsync(ledger);
+            return entries.Select(MapToDto).ToList();
         }
 
-        public async Task<bool> UpdateAsync(ExpenseLedgerDto dto)
+        public async Task<List<ExpenseLedgerDto>> GetAdminsByTenantAsync(
+            long tenantId)
         {
-            var ledger = new ExpenseLedger
-            {
-                LedgerId = dto.LedgerId,
-                EntryType = dto.EntryType.Trim(),
-                Category = dto.Category.Trim(),
-                Amount = dto.Amount,
-                Description = dto.Description?.Trim(),
-                EntryDate = dto.EntryDate.Date,
-                RecordedByAdminId = dto.RecordedByAdminId,
-                ModifyBy = dto.ModifyBy,
-                TenantId = dto.TenantId
-            };
+            var admins = await _repository.GetAdminsByTenantAsync(tenantId);
 
-            return await _repository.UpdateAsync(ledger);
+            return admins.Select(MapToDto).ToList();
         }
 
-        public Task<bool> DeleteAsync(long ledgerId)
+        public async Task<long> CreateAsync(
+            ExpenseLedgerDto dto,
+            long? createdBy)
         {
-            return _repository.DeleteAsync(ledgerId);
+            var entry = MapToEntity(dto);
+
+            entry.CreatedBy = createdBy;
+
+            return await _repository.CreateAsync(entry);
         }
 
-        private static ExpenseLedgerDto MapToDto(ExpenseLedger ledger)
+        public async Task<bool> UpdateAsync(
+            ExpenseLedgerDto dto,
+            long? modifyBy)
+        {
+            var entry = MapToEntity(dto);
+
+            entry.ModifyBy = modifyBy;
+
+            return await _repository.UpdateAsync(entry);
+        }
+
+        public async Task<bool> DeleteAsync(
+            long ledgerId,
+            long? modifyBy,
+            long tenantId)
+        {
+            return await _repository.DeleteAsync(
+                ledgerId, modifyBy, tenantId);
+        }
+
+        private static ExpenseLedgerDto MapToDto(
+            ExpenseLedger entry)
         {
             return new ExpenseLedgerDto
             {
-                LedgerId = ledger.LedgerId,
-                EntryType = ledger.EntryType,
-                Category = ledger.Category,
-                Amount = ledger.Amount,
-                Description = ledger.Description,
-                EntryDate = ledger.EntryDate,
-                RecordedByAdminId = ledger.RecordedByAdminId,
-                IsActive = ledger.IsActive,
-                CreatedOn = ledger.CreatedOn,
-                CreatedBy = ledger.CreatedBy,
-                ModifyOn = ledger.ModifyOn,
-                ModifyBy = ledger.ModifyBy,
-                TenantId = ledger.TenantId
+                LedgerId = entry.LedgerId,
+                EntryType = entry.EntryType,
+                Category = entry.Category,
+                Amount = entry.Amount,
+                Description = entry.Description,
+                EntryDate = entry.EntryDate,
+                RecordedByAdminId = entry.RecordedByAdminId,
+                RecordedByAdminName = entry.RecordedByAdminName,
+                Designation = entry.Designation,
+                IsActive = entry.IsActive,
+                CreatedOn = entry.CreatedOn,
+                CreatedBy = entry.CreatedBy,
+                ModifyOn = entry.ModifyOn,
+                ModifyBy = entry.ModifyBy,
+                TenantId = entry.TenantId,
+                TenantName = entry.TenantName
+            };
+        }
+
+        private static ExpenseLedger MapToEntity(
+            ExpenseLedgerDto dto)
+        {
+            return new ExpenseLedger
+            {
+                LedgerId = dto.LedgerId,
+                EntryType = dto.EntryType,
+                Category = dto.Category,
+                Amount = dto.Amount,
+                Description = dto.Description,
+                EntryDate = dto.EntryDate,
+                RecordedByAdminId = dto.RecordedByAdminId,
+                TenantId = dto.TenantId,
+                IsActive = dto.IsActive
             };
         }
     }

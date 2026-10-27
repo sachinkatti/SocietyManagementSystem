@@ -1,5 +1,7 @@
-﻿using Microsoft.Data.SqlClient;
+﻿
+using Microsoft.Data.SqlClient;
 using SMS.Domain;
+using System.Data;
 
 namespace SMS.Infrastructure
 {
@@ -12,182 +14,235 @@ namespace SMS.Infrastructure
             _connectionFactory = connectionFactory;
         }
 
+        // 1. Get all active attendance records
         public async Task<List<StaffAttendance>> GetAllAsync()
         {
             var attendanceList = new List<StaffAttendance>();
 
             using var connection = _connectionFactory.CreateConnection();
+            using var command = new SqlCommand(
+                "dbo.GetAllStaffAttendance", connection);
+
+            command.CommandType = CommandType.StoredProcedure;
+
             await connection.OpenAsync();
 
-            const string query = @"
-                SELECT AttendanceId, StaffName, StaffRole, FlatId,
-                       CheckInTime, CheckOutTime, IsActive, CreatedOn,
-                       CreatedBy, ModifyOn, ModifyBy, TenantId
-                FROM StaffAttendance
-                WHERE IsActive = 1
-                ORDER BY AttendanceId DESC";
-
-            using var command = new SqlCommand(query, connection);
             using var reader = await command.ExecuteReaderAsync();
 
             while (await reader.ReadAsync())
             {
-                attendanceList.Add(MapAttendance(reader));
+                attendanceList.Add(MapStaffAttendance(reader));
             }
 
             return attendanceList;
         }
 
-        public async Task<StaffAttendance?> GetByIdAsync(long id)
+        // 2. Get attendance by ID
+        public async Task<StaffAttendance?> GetByIdAsync(long attendanceId)
         {
             using var connection = _connectionFactory.CreateConnection();
+            using var command = new SqlCommand(
+                "dbo.GetStaffAttendanceById", connection);
+
+            command.CommandType = CommandType.StoredProcedure;
+
+            command.Parameters.Add("@AttendanceId", SqlDbType.BigInt)
+                .Value = attendanceId;
+
             await connection.OpenAsync();
-
-            const string query = @"
-                SELECT AttendanceId, StaffName, StaffRole, FlatId,
-                       CheckInTime, CheckOutTime, IsActive, CreatedOn,
-                       CreatedBy, ModifyOn, ModifyBy, TenantId
-                FROM StaffAttendance
-                WHERE AttendanceId = @AttendanceId AND IsActive = 1";
-
-            using var command = new SqlCommand(query, connection);
-            command.Parameters.AddWithValue("@AttendanceId", id);
 
             using var reader = await command.ExecuteReaderAsync();
 
             if (await reader.ReadAsync())
             {
-                return MapAttendance(reader);
+                return MapStaffAttendance(reader);
             }
 
             return null;
         }
 
+        // 3. Insert attendance record
         public async Task<long> CreateAsync(StaffAttendance attendance)
         {
             using var connection = _connectionFactory.CreateConnection();
+            using var command = new SqlCommand(
+                "dbo.InsertStaffAttendance", connection);
+
+            command.CommandType = CommandType.StoredProcedure;
+
+            command.Parameters.Add("@StaffName", SqlDbType.NVarChar, 100)
+                .Value = attendance.StaffName;
+
+            command.Parameters.Add("@StaffRole", SqlDbType.NVarChar, 50)
+                .Value = attendance.StaffRole;
+
+            command.Parameters.Add("@FlatId", SqlDbType.BigInt)
+                .Value = attendance.FlatId;
+
+            command.Parameters.Add("@CheckInTime", SqlDbType.DateTime2)
+                .Value = attendance.CheckInTime;
+
+            command.Parameters.Add("@CheckOutTime", SqlDbType.DateTime2)
+                .Value = attendance.CheckOutTime.HasValue
+                    ? attendance.CheckOutTime.Value
+                    : DBNull.Value;
+
+            command.Parameters.Add("@CreatedBy", SqlDbType.BigInt)
+                .Value = attendance.CreatedBy.HasValue
+                    ? attendance.CreatedBy.Value
+                    : DBNull.Value;
+
+            command.Parameters.Add("@TenantId", SqlDbType.BigInt)
+                .Value = attendance.TenantId;
+
             await connection.OpenAsync();
 
-            const string query = @"
-                INSERT INTO StaffAttendance
-                (
-                    StaffName, StaffRole, FlatId, CheckInTime,
-                    CheckOutTime, IsActive, CreatedOn, CreatedBy,
-                    ModifyOn, ModifyBy, TenantId
-                )
-                VALUES
-                (
-                    @StaffName, @StaffRole, @FlatId, @CheckInTime,
-                    @CheckOutTime, @IsActive, @CreatedOn, @CreatedBy,
-                    @ModifyOn, @ModifyBy, @TenantId
-                );
-
-                SELECT CAST(SCOPE_IDENTITY() AS BIGINT);";
-
-            using var command = new SqlCommand(query, connection);
-            AddParameters(command, attendance);
-
             var result = await command.ExecuteScalarAsync();
+
             return Convert.ToInt64(result);
         }
 
+        // 4. Update attendance record
         public async Task<bool> UpdateAsync(StaffAttendance attendance)
         {
             using var connection = _connectionFactory.CreateConnection();
+            using var command = new SqlCommand(
+                "dbo.UpdateStaffAttendance", connection);
+
+            command.CommandType = CommandType.StoredProcedure;
+
+            command.Parameters.Add("@AttendanceId", SqlDbType.BigInt)
+                .Value = attendance.AttendanceId;
+
+            command.Parameters.Add("@StaffName", SqlDbType.NVarChar, 100)
+                .Value = attendance.StaffName;
+
+            command.Parameters.Add("@StaffRole", SqlDbType.NVarChar, 50)
+                .Value = attendance.StaffRole;
+
+            command.Parameters.Add("@FlatId", SqlDbType.BigInt)
+                .Value = attendance.FlatId;
+
+            command.Parameters.Add("@CheckInTime", SqlDbType.DateTime2)
+                .Value = attendance.CheckInTime;
+
+            command.Parameters.Add("@CheckOutTime", SqlDbType.DateTime2)
+                .Value = attendance.CheckOutTime.HasValue
+                    ? attendance.CheckOutTime.Value
+                    : DBNull.Value;
+
+            command.Parameters.Add("@ModifyBy", SqlDbType.BigInt)
+                .Value = attendance.ModifyBy.HasValue
+                    ? attendance.ModifyBy.Value
+                    : DBNull.Value;
+
+            command.Parameters.Add("@TenantId", SqlDbType.BigInt)
+                .Value = attendance.TenantId;
+
             await connection.OpenAsync();
 
-            const string query = @"
-                UPDATE StaffAttendance
-                SET StaffName = @StaffName,
-                    StaffRole = @StaffRole,
-                    FlatId = @FlatId,
-                    CheckInTime = @CheckInTime,
-                    CheckOutTime = @CheckOutTime,
-                    ModifyOn = @ModifyOn,
-                    ModifyBy = @ModifyBy,
-                    TenantId = @TenantId
-                WHERE AttendanceId = @AttendanceId AND IsActive = 1";
+            var result = await command.ExecuteScalarAsync();
 
-            using var command = new SqlCommand(query, connection);
-            AddParameters(command, attendance);
-            command.Parameters.AddWithValue("@AttendanceId", attendance.AttendanceId);
-
-            return await command.ExecuteNonQueryAsync() > 0;
+            return result != null &&
+                   result != DBNull.Value &&
+                   Convert.ToInt32(result) > 0;
         }
 
-        public async Task<bool> DeleteAsync(long id)
+        // 5. Soft delete attendance record
+        public async Task<bool> DeleteAsync(long attendanceId, long? modifyBy)
         {
             using var connection = _connectionFactory.CreateConnection();
+            using var command = new SqlCommand(
+                "dbo.DeleteStaffAttendance", connection);
+
+            command.CommandType = CommandType.StoredProcedure;
+
+            command.Parameters.Add("@AttendanceId", SqlDbType.BigInt)
+                .Value = attendanceId;
+
+            command.Parameters.Add("@ModifyBy", SqlDbType.BigInt)
+                .Value = modifyBy.HasValue
+                    ? modifyBy.Value
+                    : DBNull.Value;
+
             await connection.OpenAsync();
 
-            const string query = @"
-                UPDATE StaffAttendance
-                SET IsActive = 0,
-                    ModifyOn = @ModifyOn
-                WHERE AttendanceId = @AttendanceId AND IsActive = 1";
+            var result = await command.ExecuteScalarAsync();
 
-            using var command = new SqlCommand(query, connection);
-            command.Parameters.AddWithValue("@AttendanceId", id);
-            command.Parameters.AddWithValue("@ModifyOn", DateTime.UtcNow);
-
-            return await command.ExecuteNonQueryAsync() > 0;
+            return result != null &&
+                   result != DBNull.Value &&
+                   Convert.ToInt32(result) > 0;
         }
 
-        private static void AddParameters(
-            SqlCommand command,
-            StaffAttendance attendance)
+        // 6. Get flats belonging to the selected society
+        public async Task<List<StaffAttendance>> GetFlatsByTenantAsync(
+            long tenantId)
         {
-            command.Parameters.AddWithValue("@StaffName", attendance.StaffName);
-            command.Parameters.AddWithValue("@StaffRole", attendance.StaffRole);
-            command.Parameters.AddWithValue("@FlatId", attendance.FlatId);
-            command.Parameters.AddWithValue("@CheckInTime", attendance.CheckInTime);
+            var flats = new List<StaffAttendance>();
 
-            command.Parameters.AddWithValue(
-                "@CheckOutTime",
-                (object?)attendance.CheckOutTime ?? DBNull.Value);
+            using var connection = _connectionFactory.CreateConnection();
+            using var command = new SqlCommand(
+                "dbo.GetStaffAttendanceFlatsByTenant", connection);
 
-            command.Parameters.AddWithValue("@IsActive", attendance.IsActive);
-            command.Parameters.AddWithValue("@CreatedOn", attendance.CreatedOn);
+            command.CommandType = CommandType.StoredProcedure;
 
-            command.Parameters.AddWithValue(
-                "@CreatedBy",
-                (object?)attendance.CreatedBy ?? DBNull.Value);
+            command.Parameters.Add("@TenantId", SqlDbType.BigInt)
+                .Value = tenantId;
 
-            command.Parameters.AddWithValue(
-                "@ModifyOn",
-                (object?)attendance.ModifyOn ?? DBNull.Value);
+            await connection.OpenAsync();
 
-            command.Parameters.AddWithValue(
-                "@ModifyBy",
-                (object?)attendance.ModifyBy ?? DBNull.Value);
+            using var reader = await command.ExecuteReaderAsync();
 
-            command.Parameters.AddWithValue("@TenantId", attendance.TenantId);
+            while (await reader.ReadAsync())
+            {
+                flats.Add(new StaffAttendance
+                {
+                    FlatId = Convert.ToInt64(reader["FlatId"]),
+                    FlatNumber = reader["FlatNumber"]?.ToString(),
+                    WingName = reader["WingName"]?.ToString(),
+                    TenantId = tenantId
+                });
+            }
+
+            return flats;
         }
 
-        private static StaffAttendance MapAttendance(SqlDataReader reader)
+        // Common method to map SQL results to the entity
+        private static StaffAttendance MapStaffAttendance(
+            SqlDataReader reader)
         {
             return new StaffAttendance
             {
-                AttendanceId = reader.GetInt64(reader.GetOrdinal("AttendanceId")),
-                StaffName = reader.GetString(reader.GetOrdinal("StaffName")),
-                StaffRole = reader.GetString(reader.GetOrdinal("StaffRole")),
-                FlatId = reader.GetInt64(reader.GetOrdinal("FlatId")),
-                CheckInTime = reader.GetDateTime(reader.GetOrdinal("CheckInTime")),
-                CheckOutTime = reader.IsDBNull(reader.GetOrdinal("CheckOutTime"))
+                AttendanceId = Convert.ToInt64(reader["AttendanceId"]),
+                StaffName = reader["StaffName"]?.ToString() ?? string.Empty,
+                StaffRole = reader["StaffRole"]?.ToString() ?? string.Empty,
+                FlatId = Convert.ToInt64(reader["FlatId"]),
+                FlatNumber = reader["FlatNumber"]?.ToString(),
+                WingName = reader["WingName"]?.ToString(),
+                CheckInTime = Convert.ToDateTime(reader["CheckInTime"]),
+
+                CheckOutTime = reader["CheckOutTime"] == DBNull.Value
                     ? null
-                    : reader.GetDateTime(reader.GetOrdinal("CheckOutTime")),
-                IsActive = reader.GetBoolean(reader.GetOrdinal("IsActive")),
-                CreatedOn = reader.GetDateTime(reader.GetOrdinal("CreatedOn")),
-                CreatedBy = reader.IsDBNull(reader.GetOrdinal("CreatedBy"))
+                    : Convert.ToDateTime(reader["CheckOutTime"]),
+
+                IsActive = Convert.ToBoolean(reader["IsActive"]),
+                CreatedOn = Convert.ToDateTime(reader["CreatedOn"]),
+
+                CreatedBy = reader["CreatedBy"] == DBNull.Value
                     ? null
-                    : reader.GetInt64(reader.GetOrdinal("CreatedBy")),
-                ModifyOn = reader.IsDBNull(reader.GetOrdinal("ModifyOn"))
+                    : Convert.ToInt64(reader["CreatedBy"]),
+
+                ModifyOn = reader["ModifyOn"] == DBNull.Value
                     ? null
-                    : reader.GetDateTime(reader.GetOrdinal("ModifyOn")),
-                ModifyBy = reader.IsDBNull(reader.GetOrdinal("ModifyBy"))
+                    : Convert.ToDateTime(reader["ModifyOn"]),
+
+                ModifyBy = reader["ModifyBy"] == DBNull.Value
                     ? null
-                    : reader.GetInt64(reader.GetOrdinal("ModifyBy")),
-                TenantId = reader.GetInt64(reader.GetOrdinal("TenantId"))
+                    : Convert.ToInt64(reader["ModifyBy"]),
+
+                TenantId = Convert.ToInt64(reader["TenantId"]),
+
+                TenantName = reader["TenantName"]?.ToString()
             };
         }
     }

@@ -1,0 +1,69 @@
+﻿
+@model IEnumerable<SMS.Application.InvoiceDto>
+
+@{
+    ViewData["Title"] = "Invoice Management";
+}
+
+<h2>Invoice Management</h2>
+
+<p>
+    <a asp-action="Create" class="btn btn-primary">Create Invoice</a>
+</p>
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success">
+        @TempData["SuccessMessage"]
+    </div>
+}
+
+<table class="table table-bordered table-striped">
+    <thead>
+        <tr>
+            <th>Invoice No.</th>
+            <th>Tenant ID</th>
+            <th>Subscription ID</th>
+            <th>Amount</th>
+            <th>Tax</th>
+            <th>Total</th>
+            <th>Invoice Date</th>
+            <th>Due Date</th>
+            <th>Status</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        @if (Model != null && Model.Any())
+        {
+            foreach (var invoice in Model)
+            {
+                <tr>
+                    <td>@invoice.InvoiceNumber</td>
+                    <td>@invoice.TenantId</td>
+                    <td>@invoice.SubscriptionId</td>
+                    <td>@invoice.Amount.ToString("N2")</td>
+                    <td>@invoice.TaxAmount.ToString("N2")</td>
+                    <td>@invoice.TotalAmount.ToString("N2")</td>
+                    <td>@invoice.InvoiceDate.ToString("dd-MM-yyyy")</td>
+                    <td>@invoice.DueDate.ToString("dd-MM-yyyy")</td>
+                    <td>@invoice.Status</td>
+                    <td>
+                        <a asp-action="Details"
+                           asp-route-id="@invoice.InvoiceId">Details</a> |
+                        <a asp-action="Edit"
+                           asp-route-id="@invoice.InvoiceId">Edit</a> |
+                        <a asp-action="Delete"
+                           asp-route-id="@invoice.InvoiceId">Delete</a>
+                    </td>
+                </tr>
+            }
+        }
+        else
+        {
+            <tr>
+                <td colspan="10" class="text-center">No invoices found.</td>
+            </tr>
+        }
+    </tbody>
+</table>

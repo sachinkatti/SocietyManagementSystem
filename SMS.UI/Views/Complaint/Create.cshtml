@@ -1,0 +1,121 @@
+﻿@model SMS.Application.ComplaintDto
+
+@{
+    ViewData["Title"] = "Register Complaint";
+}
+
+<h2>Register Complaint</h2>
+
+<hr />
+
+<form asp-action="Create" method="post">
+    @Html.AntiForgeryToken()
+
+    <div asp-validation-summary="ModelOnly"
+         class="text-danger mb-3"></div>
+
+    <div class="mb-3">
+        <label asp-for="TenantId" class="form-label">Tenant</label>
+        <select asp-for="TenantId" id="TenantId" class="form-select">
+            <option value="">-- Select Tenant --</option>
+            @if (ViewBag.Tenants != null)
+            {
+                foreach (var tenant in ViewBag.Tenants)
+                {
+                    <option value="@tenant.TenantId">
+                        @tenant.TenantName
+                    </option>
+                }
+            }
+        </select>
+        <span asp-validation-for="TenantId" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="ResidentId" class="form-label">Resident</label>
+        <select asp-for="ResidentId" id="ResidentId" class="form-select">
+            <option value="">-- Select Tenant First --</option>
+        </select>
+        <span asp-validation-for="ResidentId" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="Category" class="form-label"></label>
+        <input asp-for="Category" class="form-control"
+               placeholder="e.g. Plumbing, Electrical, Security" />
+        <span asp-validation-for="Category" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="Description" class="form-label"></label>
+        <textarea asp-for="Description" class="form-control" rows="4"
+                  placeholder="Describe the complaint"></textarea>
+        <span asp-validation-for="Description" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="PhotoUrl" class="form-label">Photo URL</label>
+        <input asp-for="PhotoUrl" class="form-control"
+               placeholder="Optional photo URL" />
+        <span asp-validation-for="PhotoUrl" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="Priority" class="form-label"></label>
+        <select asp-for="Priority" class="form-select">
+            <option value="Low">Low</option>
+            <option value="Medium">Medium</option>
+            <option value="High">High</option>
+        </select>
+        <span asp-validation-for="Priority" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="DateRaised" class="form-label">Date Raised</label>
+        <input asp-for="DateRaised" type="datetime-local"
+               asp-format="{0:yyyy-MM-ddTHH:mm}"
+               class="form-control" />
+        <span asp-validation-for="DateRaised" class="text-danger"></span>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Submit Complaint</button>
+    <a asp-action="Index" class="btn btn-secondary">Cancel</a>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+
+    <script>
+        document.getElementById("TenantId").addEventListener("change",
+            async function () {
+                const tenantId = this.value;
+                const residentSelect = document.getElementById("ResidentId");
+
+                residentSelect.innerHTML =
+                    '<option value="">-- Select Resident --</option>';
+
+                if (!tenantId) return;
+
+                try {
+                    const response = await fetch(
+                        '@Url.Action("GetResidentsByTenant", "Complaint")'
+                        + '?tenantId=' + encodeURIComponent(tenantId));
+
+                    if (!response.ok) {
+                        throw new Error("Unable to load residents.");
+                    }
+
+                    const residents = await response.json();
+
+                    residents.forEach(function (resident) {
+                        const option = document.createElement("option");
+                        option.value = resident.residentId;
+                        option.textContent = resident.residentName;
+                        residentSelect.appendChild(option);
+                    });
+                } catch (error) {
+                    alert("Could not load residents. Please try again.");
+                }
+            });
+    </script>
+}

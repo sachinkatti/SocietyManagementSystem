@@ -12,6 +12,7 @@ namespace SMS.Application
             _noticeRepository = noticeRepository;
         }
 
+        // 1. Get all active notices
         public async Task<List<NoticeDto>> GetAllAsync()
         {
             var notices = await _noticeRepository.GetAllAsync();
@@ -19,55 +20,105 @@ namespace SMS.Application
             return notices.Select(MapToDto).ToList();
         }
 
-        public async Task<NoticeDto?> GetByIdAsync(long id)
+        // 2. Get notice by ID
+        public async Task<NoticeDto?> GetByIdAsync(long noticeId)
         {
-            var notice = await _noticeRepository.GetByIdAsync(id);
+            var notice = await _noticeRepository.GetByIdAsync(noticeId);
 
             return notice == null ? null : MapToDto(notice);
         }
 
-        public async Task<long> CreateAsync(NoticeDto dto)
+        // 3. Get notices by tenant
+        public async Task<List<NoticeDto>> GetByTenantAsync(long tenantId)
         {
-            var notice = new Notice
+            if (tenantId <= 0)
             {
-                Title = dto.Title.Trim(),
-                Message = dto.Message.Trim(),
-                Category = dto.Category.Trim(),
-                PublishDate = dto.PublishDate,
-                PublishedByAdminId = dto.PublishedByAdminId,
-                IsActive = true,
-                CreatedOn = DateTime.UtcNow,
-                CreatedBy = dto.CreatedBy,
-                TenantId = dto.TenantId
-            };
+                throw new ArgumentException("Invalid tenant ID.");
+            }
 
-            return await _noticeRepository.CreateAsync(notice);
+            var notices =
+                await _noticeRepository.GetByTenantAsync(tenantId);
+
+            return notices.Select(MapToDto).ToList();
         }
 
-        public async Task<bool> UpdateAsync(NoticeDto dto)
+        // 4. Create notice
+        public async Task<long> CreateAsync(NoticeDto notice)
         {
-            var notice = new Notice
+            var errors = NoticeValidator.Validate(notice);
+
+            if (errors.Count > 0)
             {
-                NoticeId = dto.NoticeId,
-                Title = dto.Title.Trim(),
-                Message = dto.Message.Trim(),
-                Category = dto.Category.Trim(),
-                PublishDate = dto.PublishDate,
-                PublishedByAdminId = dto.PublishedByAdminId,
-                IsActive = true,
-                ModifyOn = DateTime.UtcNow,
-                ModifyBy = dto.ModifyBy,
-                TenantId = dto.TenantId
-            };
+                throw new ArgumentException(string.Join(" ", errors));
+            }
 
-            return await _noticeRepository.UpdateAsync(notice);
+            var entity = MapToEntity(notice);
+
+            return await _noticeRepository.CreateAsync(entity);
         }
 
-        public Task<bool> DeleteAsync(long id)
+        // 5. Update notice
+        public async Task<bool> UpdateAsync(NoticeDto notice)
         {
-            return _noticeRepository.DeleteAsync(id);
+            if (notice.NoticeId <= 0)
+            {
+                throw new ArgumentException("Invalid notice ID.");
+            }
+
+            var errors = NoticeValidator.Validate(notice);
+
+            if (errors.Count > 0)
+            {
+                throw new ArgumentException(string.Join(" ", errors));
+            }
+
+            var entity = MapToEntity(notice);
+
+            return await _noticeRepository.UpdateAsync(entity);
         }
 
+        // 6. Soft-delete notice
+        public async Task<bool> DeleteAsync(
+            long noticeId,
+            long? modifyBy,
+            long tenantId)
+        {
+            if (noticeId <= 0)
+            {
+                throw new ArgumentException("Invalid notice ID.");
+            }
+
+            if (tenantId <= 0)
+            {
+                throw new ArgumentException("Invalid tenant ID.");
+            }
+
+            return await _noticeRepository.DeleteAsync(
+                noticeId,
+                modifyBy,
+                tenantId);
+        }
+
+        // 7. Get admins for the dropdown
+        public async Task<List<NoticeAdminDto>> GetAdminsByTenantAsync(
+            long tenantId)
+        {
+            if (tenantId <= 0)
+            {
+                throw new ArgumentException("Invalid tenant ID.");
+            }
+
+            var admins =
+                await _noticeRepository.GetAdminsByTenantAsync(tenantId);
+
+            return admins.Select(admin => new NoticeAdminDto
+            {
+                AdminId = admin.AdminId,
+                AdminName = admin.AdminName
+            }).ToList();
+        }
+
+        // Convert entity to DTO
         private static NoticeDto MapToDto(Notice notice)
         {
             return new NoticeDto
@@ -78,10 +129,30 @@ namespace SMS.Application
                 Category = notice.Category,
                 PublishDate = notice.PublishDate,
                 PublishedByAdminId = notice.PublishedByAdminId,
+                AdminName = notice.AdminName,
                 IsActive = notice.IsActive,
                 CreatedOn = notice.CreatedOn,
                 CreatedBy = notice.CreatedBy,
                 ModifyOn = notice.ModifyOn,
+                ModifyBy = notice.ModifyBy,
+                TenantId = notice.TenantId,
+                TenantName = notice.TenantName
+            };
+        }
+
+        // Convert DTO to entity
+        private static Notice MapToEntity(NoticeDto notice)
+        {
+            return new Notice
+            {
+                NoticeId = notice.NoticeId,
+                Title = notice.Title.Trim(),
+                Message = notice.Message.Trim(),
+                Category = notice.Category.Trim(),
+                PublishDate = notice.PublishDate,
+                PublishedByAdminId = notice.PublishedByAdminId,
+                IsActive = notice.IsActive,
+                CreatedBy = notice.CreatedBy,
                 ModifyBy = notice.ModifyBy,
                 TenantId = notice.TenantId
             };

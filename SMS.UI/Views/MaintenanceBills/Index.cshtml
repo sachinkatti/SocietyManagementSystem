@@ -1,45 +1,107 @@
 ﻿@model List<SMS.Application.MaintenanceBillDto>
 
-<h2>Maintenance Bills</h2>
+@{
+    ViewData["Title"] = "Maintenance Bills";
+}
 
-<p>
-    <a asp-action="Create" class="btn btn-primary">Create Bill</a>
-</p>
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2>Maintenance Bills</h2>
+        <a asp-action="Create" class="btn btn-primary">
+            Create New Bill
+        </a>
+    </div>
 
-<table class="table table-bordered table-striped">
-    <thead>
-        <tr>
-            <th>Bill ID</th>
-            <th>Flat ID</th>
-            <th>Billing Month</th>
-            <th>Billing Year</th>
-            <th>Base Amount</th>
-            <th>Penalty</th>
-            <th>Total Amount</th>
-            <th>Due Date</th>
-            <th>Payment Status</th>
-            <th>Actions</th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var item in Model)
-        {
-            <tr>
-                <td>@item.BillId</td>
-                <td>@item.FlatId</td>
-                <td>@item.BillingMonth</td>
-                <td>@item.BillingYear</td>
-                <td>@item.BaseAmount.ToString("N2")</td>
-                <td>@item.PenaltyAmount.ToString("N2")</td>
-                <td>@item.TotalAmount.ToString("N2")</td>
-                <td>@item.DueDate.ToString("dd-MM-yyyy")</td>
-                <td>@item.PaymentStatus</td>
-                <td>
-                    <a asp-action="Details" asp-route-id="@item.BillId">Details</a> |
-                    <a asp-action="Edit" asp-route-id="@item.BillId">Edit</a> |
-                    <a asp-action="Delete" asp-route-id="@item.BillId">Delete</a>
-                </td>
-            </tr>
-        }
-    </tbody>
-</table>
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success">
+            @TempData["SuccessMessage"]
+        </div>
+    }
+
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger">
+            @TempData["ErrorMessage"]
+        </div>
+    }
+
+    <div class="table-responsive">
+        <table class="table table-bordered table-striped">
+            <thead class="table-dark">
+                <tr>
+                    <th>Bill ID</th>
+                    <th>Flat</th>
+                    <th>Billing Period</th>
+                    <th>Base Amount</th>
+                    <th>Penalty</th>
+                    <th>Total Amount</th>
+                    <th>Due Date</th>
+                    <th>Payment Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model != null && Model.Any())
+                {
+                    foreach (var bill in Model)
+                    {
+                        <tr>
+                            <td>@bill.BillId</td>
+                            <td>@bill.FlatNumber</td>
+                            <td>
+                                @(new DateTime(bill.BillingYear, bill.BillingMonth, 1).ToString("MMMM yyyy"))
+                            </td>
+                            <td>@bill.BaseAmount.ToString("C")</td>
+                            <td>@bill.PenaltyAmount.ToString("C")</td>
+                            <td>@bill.TotalAmount.ToString("C")</td>
+                            <td>@bill.DueDate.ToString("dd-MMM-yyyy")</td>
+                            <td>
+                                <span class="badge bg-info text-dark">
+                                    @bill.PaymentStatus
+                                </span>
+                            </td>
+                            <td>
+                                <a asp-controller="MaintenanceBills"
+                                       asp-action="Details"
+                                       asp-route-id="@bill.BillId"
+                                       class="btn btn-info btn-sm">
+                                    Details
+                                </a>
+
+                                <a asp-controller="MaintenanceBills"
+                                       asp-action="Edit"
+                                       asp-route-id="@bill.BillId"
+                                       class="btn btn-warning btn-sm">
+                                    Edit
+                                </a>
+
+                                <form asp-controller="MaintenanceBills"
+                                      asp-action="Delete"
+                                      asp-route-id="@bill.BillId"
+                                      method="post"
+                                      style="display:inline;"
+                                      onsubmit="return confirm('Are you sure you want to delete this maintenance bill?');">
+
+                                    @Html.AntiForgeryToken()
+
+                                    <button type="submit" class="btn btn-danger btn-sm">
+                                        Delete
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="9" class="text-center">
+                            No maintenance bills found.
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

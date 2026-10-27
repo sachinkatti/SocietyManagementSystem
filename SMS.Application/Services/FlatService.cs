@@ -12,12 +12,46 @@ namespace SMS.Application
             _flatRepository = flatRepository;
         }
 
+        public async Task<IEnumerable<FlatDto>> GetAllAsync()
+        {
+            var flats = await _flatRepository.GetAllAsync();
+
+            return flats.Select(MapToDto);
+        }
+
+        public async Task<FlatDto?> GetByIdAsync(long flatId)
+        {
+            var flat = await _flatRepository.GetByIdAsync(flatId);
+
+            return flat == null ? null : MapToDto(flat);
+        }
+
+        public async Task<long> CreateAsync(FlatDto dto)
+        {
+            var flat = MapToEntity(dto);
+
+            return await _flatRepository.CreateAsync(flat);
+        }
+
+        public async Task<bool> UpdateAsync(FlatDto dto)
+        {
+            var flat = MapToEntity(dto);
+
+            return await _flatRepository.UpdateAsync(flat);
+        }
+
+        public async Task<bool> DeleteAsync(long flatId)
+        {
+            return await _flatRepository.DeleteAsync(flatId);
+        }
+
         private static FlatDto MapToDto(Flat flat)
         {
             return new FlatDto
             {
                 FlatId = flat.FlatId,
                 WingId = flat.WingId,
+                WingName = flat.WingName,
                 FlatNumber = flat.FlatNumber,
                 FloorNumber = flat.FloorNumber,
                 SquareFeet = flat.SquareFeet,
@@ -38,6 +72,7 @@ namespace SMS.Application
             {
                 FlatId = dto.FlatId,
                 WingId = dto.WingId,
+                WingName = dto.WingName,
                 FlatNumber = dto.FlatNumber,
                 FloorNumber = dto.FloorNumber,
                 SquareFeet = dto.SquareFeet,
@@ -45,44 +80,9 @@ namespace SMS.Application
                 ParkingSlotNumber = dto.ParkingSlotNumber,
                 Description = dto.Description,
                 IsActive = dto.IsActive,
-                CreatedOn = dto.CreatedOn,
                 CreatedBy = dto.CreatedBy,
-                ModifyOn = dto.ModifyOn,
                 ModifyBy = dto.ModifyBy
             };
-        }
-
-        public async Task<IEnumerable<FlatDto>> GetAllAsync()
-        {
-            var flats = await _flatRepository.GetAllAsync();
-            return flats.Select(MapToDto);
-        }
-
-        public async Task<FlatDto?> GetByIdAsync(long flatId)
-        {
-            var flat = await _flatRepository.GetByIdAsync(flatId);
-
-            return flat == null ? null : MapToDto(flat);
-        }
-
-        public async Task<long> CreateAsync(FlatDto dto)
-        {
-            var flat = MapToEntity(dto);
-            flat.IsActive = true;
-
-            return await _flatRepository.CreateAsync(flat);
-        }
-
-        public async Task<bool> UpdateAsync(FlatDto dto)
-        {
-            var flat = MapToEntity(dto);
-
-            return await _flatRepository.UpdateAsync(flat);
-        }
-
-        public async Task<bool> DeleteAsync(long flatId)
-        {
-            return await _flatRepository.DeleteAsync(flatId);
         }
     }
 }

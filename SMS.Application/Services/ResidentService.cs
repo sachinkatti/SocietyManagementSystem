@@ -1,4 +1,5 @@
-﻿using SMS.Domain;
+﻿
+using SMS.Domain;
 using SMS.Infrastructure;
 
 namespace SMS.Application
@@ -16,29 +17,34 @@ namespace SMS.Application
         {
             var residents = await _residentRepository.GetAllAsync();
 
-            return residents.Select(MapToDto);
+            return residents.Select(MapToDto).ToList();
         }
 
         public async Task<ResidentDto?> GetByIdAsync(long residentId)
         {
-            var resident = await _residentRepository.GetByIdAsync(residentId);
+            var resident =
+                await _residentRepository.GetByIdAsync(residentId);
 
             return resident == null ? null : MapToDto(resident);
         }
 
         public async Task<long> CreateAsync(ResidentDto dto)
         {
-            return await _residentRepository.CreateAsync(MapToEntity(dto));
+            var resident = MapToEntity(dto);
+
+            return await _residentRepository.CreateAsync(resident);
         }
 
         public async Task<bool> UpdateAsync(ResidentDto dto)
         {
-            return await _residentRepository.UpdateAsync(MapToEntity(dto));
+            var resident = MapToEntity(dto);
+
+            return await _residentRepository.UpdateAsync(resident);
         }
 
-        public Task<bool> DeleteAsync(long residentId)
+        public async Task<bool> DeleteAsync(long residentId)
         {
-            return _residentRepository.DeleteAsync(residentId);
+            return await _residentRepository.DeleteAsync(residentId);
         }
 
         private static ResidentDto MapToDto(Resident resident)
@@ -46,11 +52,18 @@ namespace SMS.Application
             return new ResidentDto
             {
                 ResidentId = resident.ResidentId,
+
                 UserId = resident.UserId,
+                FullName = resident.FullName,
+
                 FlatId = resident.FlatId,
+                FlatNumber = resident.FlatNumber,
+                WingName = resident.WingName,
+
                 ResidentType = resident.ResidentType,
                 MoveInDate = resident.MoveInDate,
                 EmergencyContact = resident.EmergencyContact,
+
                 IsActive = resident.IsActive,
                 CreatedOn = resident.CreatedOn,
                 CreatedBy = resident.CreatedBy,
@@ -64,12 +77,14 @@ namespace SMS.Application
             return new Resident
             {
                 ResidentId = dto.ResidentId,
+
                 UserId = dto.UserId,
                 FlatId = dto.FlatId,
+
                 ResidentType = dto.ResidentType,
                 MoveInDate = dto.MoveInDate,
                 EmergencyContact = dto.EmergencyContact,
-                IsActive = dto.IsActive,
+
                 CreatedBy = dto.CreatedBy,
                 ModifyBy = dto.ModifyBy
             };

@@ -1,32 +1,52 @@
 ﻿@model SMS.Application.StaffAttendanceDto
 
-<h2>Attendance Details</h2>
+@{
+    ViewData["Title"] = "Staff Attendance Details";
+}
 
-<dl class="row">
-    <dt class="col-sm-3">Attendance ID</dt>
-    <dd class="col-sm-9">@Model.AttendanceId</dd>
+<div class="container mt-4">
+    <h2>Staff Attendance Details</h2>
+    <hr />
 
-    <dt class="col-sm-3">Staff Name</dt>
-    <dd class="col-sm-9">@Model.StaffName</dd>
+    <dl class="row">
+        <dt class="col-sm-3">Attendance ID</dt>
+        <dd class="col-sm-9">@Model.AttendanceId</dd>
 
-    <dt class="col-sm-3">Staff Role</dt>
-    <dd class="col-sm-9">@Model.StaffRole</dd>
+        <dt class="col-sm-3">Staff Name</dt>
+        <dd class="col-sm-9">@Model.StaffName</dd>
 
-    <dt class="col-sm-3">Flat ID</dt>
-    <dd class="col-sm-9">@Model.FlatId</dd>
+        <dt class="col-sm-3">Staff Role</dt>
+        <dd class="col-sm-9">@Model.StaffRole</dd>
 
-    <dt class="col-sm-3">Check-In Time</dt>
-    <dd class="col-sm-9">@Model.CheckInTime.ToString("dd-MM-yyyy HH:mm")</dd>
+        <dt class="col-sm-3">Society</dt>
+        <dd class="col-sm-9">@Model.TenantName</dd>
 
-    <dt class="col-sm-3">Check-Out Time</dt>
-    <dd class="col-sm-9">@(Model.CheckOutTime?.ToString("dd-MM-yyyy HH:mm") ?? "Not checked out")</dd>
+        <dt class="col-sm-3">Wing</dt>
+        <dd class="col-sm-9">@Model.WingName</dd>
 
-    <dt class="col-sm-3">Tenant ID</dt>
-    <dd class="col-sm-9">@Model.TenantId</dd>
+        <dt class="col-sm-3">Flat</dt>
+        <dd class="col-sm-9">@Model.FlatNumber</dd>
 
-    <dt class="col-sm-3">Created On</dt>
-    <dd class="col-sm-9">@Model.CreatedOn</dd>
-</dl>
+        <dt class="col-sm-3">Check In</dt>
+        <dd class="col-sm-9">@Model.CheckInTime.ToString("dd-MM-yyyy hh:mm tt")</dd>
 
-<a asp-action="Edit" asp-route-id="@Model.AttendanceId" class="btn btn-primary">Edit</a>
-<a asp-action="Index" class="btn btn-secondary">Back</a>
+        <dt class="col-sm-3">Check Out</dt>
+        <dd class="col-sm-9">
+            @(Model.CheckOutTime.HasValue
+                ? Model.CheckOutTime.Value.ToString("dd-MM-yyyy hh:mm tt")
+                : "Not checked out")
+        </dd>
+
+        <dt class="col-sm-3">Created On</dt>
+        <dd class="col-sm-9">@Model.CreatedOn.ToString("dd-MM-yyyy hh:mm tt")</dd>
+
+        <dt class="col-sm-3">Active</dt>
+        <dd class="col-sm-9">@(Model.IsActive ? "Yes" : "No")</dd>
+    </dl>
+
+    <a asp-action="Edit"
+       asp-route-id="@Model.AttendanceId"
+       class="btn btn-warning">Edit</a>
+
+    <a asp-action="Index" class="btn btn-secondary">Back</a>
+</div>

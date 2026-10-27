@@ -1,0 +1,45 @@
+﻿@model SMS.Application.InvoiceDto
+
+@{
+    ViewData["Title"] = "Invoice Details";
+}
+
+<h2>Invoice Details</h2>
+
+<dl class="row">
+    <dt class="col-sm-3">Invoice ID</dt>
+    <dd class="col-sm-9">@Model.InvoiceId</dd>
+
+    <dt class="col-sm-3">Invoice Number</dt>
+    <dd class="col-sm-9">@Model.InvoiceNumber</dd>
+
+    <dt class="col-sm-3">Tenant ID</dt>
+    <dd class="col-sm-9">@Model.TenantId</dd>
+
+    <dt class="col-sm-3">Subscription ID</dt>
+    <dd class="col-sm-9">@Model.SubscriptionId</dd>
+
+    <dt class="col-sm-3">Amount</dt>
+    <dd class="col-sm-9">@Model.Amount.ToString("N2")</dd>
+
+    <dt class="col-sm-3">Tax Amount</dt>
+    <dd class="col-sm-9">@Model.TaxAmount.ToString("N2")</dd>
+
+    <dt class="col-sm-3">Total Amount</dt>
+    <dd class="col-sm-9">@Model.TotalAmount.ToString("N2")</dd>
+
+    <dt class="col-sm-3">Invoice Date</dt>
+    <dd class="col-sm-9">@Model.InvoiceDate.ToString("dd-MM-yyyy")</dd>
+
+    <dt class="col-sm-3">Due Date</dt>
+    <dd class="col-sm-9">@Model.DueDate.ToString("dd-MM-yyyy")</dd>
+
+    <dt class="col-sm-3">Status</dt>
+    <dd class="col-sm-9">@Model.Status</dd>
+
+    <dt class="col-sm-3">Description</dt>
+    <dd class="col-sm-9">@(Model.Description ?? "N/A")</dd>
+</dl>
+
+<a asp-action="Edit" asp-route-id="@Model.InvoiceId" class="btn btn-primary">Edit</a>
+<a asp-action="Index" class="btn btn-secondary">Back to List</a>

@@ -14,56 +14,77 @@ namespace SMS.Application
 
         public async Task<IEnumerable<VehicleRegistryDto>> GetAllAsync()
         {
-            return (await _repository.GetAllAsync()).Select(ToDto);
+            var vehicles = await _repository.GetAllAsync();
+            return vehicles.Select(MapToDto).ToList();
         }
 
-        public async Task<VehicleRegistryDto?> GetByIdAsync(long id)
+        public async Task<VehicleRegistryDto?> GetByIdAsync(long vehicleId)
         {
-            var v = await _repository.GetByIdAsync(id);
-            return v == null ? null : ToDto(v);
+            var vehicle = await _repository.GetByIdAsync(vehicleId);
+
+            return vehicle == null ? null : MapToDto(vehicle);
         }
 
-        public Task<long> CreateAsync(VehicleRegistryDto dto)
+        public async Task<long> CreateAsync(VehicleRegistryDto dto)
         {
-            return _repository.CreateAsync(ToEntity(dto));
+            var vehicle = MapToEntity(dto);
+            return await _repository.CreateAsync(vehicle);
         }
 
-        public Task<bool> UpdateAsync(VehicleRegistryDto dto)
+        public async Task<bool> UpdateAsync(VehicleRegistryDto dto)
         {
-            return _repository.UpdateAsync(ToEntity(dto));
+            var vehicle = MapToEntity(dto);
+            return await _repository.UpdateAsync(vehicle);
         }
 
-        public Task<bool> DeleteAsync(long id)
+        public async Task<bool> DeleteAsync(long vehicleId)
         {
-            return _repository.DeleteAsync(id);
+            return await _repository.DeleteAsync(vehicleId);
         }
 
-        private static VehicleRegistryDto ToDto(VehicleRegistry v) => new()
+        public async Task<IEnumerable<VehicleFlatOption>> GetFlatsByTenantAsync(
+            long tenantId)
         {
-            VehicleId = v.VehicleId,
-            FlatId = v.FlatId,
-            TenantId = v.TenantId,
-            VehicleNumber = v.VehicleNumber,
-            VehicleType = v.VehicleType,
-            Description = v.Description,
-            IsActive = v.IsActive,
-            CreatedOn = v.CreatedOn,
-            CreatedBy = v.CreatedBy,
-            ModifyOn = v.ModifyOn,
-            ModifyBy = v.ModifyBy
-        };
+            return await _repository.GetFlatsByTenantAsync(tenantId);
+        }
 
-        private static VehicleRegistry ToEntity(VehicleRegistryDto d) => new()
+        private static VehicleRegistryDto MapToDto(VehicleRegistry vehicle)
         {
-            VehicleId = d.VehicleId,
-            FlatId = d.FlatId,
-            TenantId = d.TenantId,
-            VehicleNumber = d.VehicleNumber,
-            VehicleType = d.VehicleType,
-            Description = d.Description,
-            IsActive = d.IsActive,
-            CreatedBy = d.CreatedBy,
-            ModifyBy = d.ModifyBy
-        };
+            return new VehicleRegistryDto
+            {
+                VehicleId = vehicle.VehicleId,
+                TenantId = vehicle.TenantId,
+                TenantName = vehicle.TenantName,
+                FlatId = vehicle.FlatId,
+                FlatNumber = vehicle.FlatNumber,
+                WingName = vehicle.WingName,
+                VehicleNumber = vehicle.VehicleNumber,
+                VehicleType = vehicle.VehicleType,
+                Description = vehicle.Description,
+                IsActive = vehicle.IsActive,
+                CreatedOn = vehicle.CreatedOn,
+                CreatedBy = vehicle.CreatedBy,
+                ModifyOn = vehicle.ModifyOn,
+                ModifyBy = vehicle.ModifyBy
+            };
+        }
+
+        private static VehicleRegistry MapToEntity(VehicleRegistryDto dto)
+        {
+            return new VehicleRegistry
+            {
+                VehicleId = dto.VehicleId,
+                TenantId = dto.TenantId,
+                FlatId = dto.FlatId,
+                VehicleNumber = dto.VehicleNumber.Trim().ToUpperInvariant(),
+                VehicleType = dto.VehicleType.Trim(),
+                Description = string.IsNullOrWhiteSpace(dto.Description)
+                    ? null
+                    : dto.Description.Trim(),
+                IsActive = true,
+                CreatedBy = dto.CreatedBy,
+                ModifyBy = dto.ModifyBy
+            };
+        }
     }
 }

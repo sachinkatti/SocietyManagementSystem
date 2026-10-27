@@ -1,0 +1,43 @@
+﻿@model SMS.Application.FlatDto
+
+@{
+    ViewData["Title"] = "Delete Flat";
+}
+
+<div class="container-fluid">
+    <h2>Delete Flat</h2>
+
+    <div class="alert alert-warning">
+        Are you sure you want to delete this flat? This will deactivate it
+        rather than physically remove its database record.
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <dl class="row">
+                <dt class="col-sm-3">Flat Number</dt>
+                <dd class="col-sm-9">@Model.FlatNumber</dd>
+
+                <dt class="col-sm-3">Wing</dt>
+                <dd class="col-sm-9">@Model.WingName</dd>
+
+                <dt class="col-sm-3">Floor</dt>
+                <dd class="col-sm-9">@Model.FloorNumber</dd>
+
+                <dt class="col-sm-3">Occupancy</dt>
+                <dd class="col-sm-9">@Model.OccupancyStatus</dd>
+            </dl>
+
+            <form asp-action="Delete" method="post">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="id" value="@Model.FlatId" />
+
+                <button type="submit" class="btn btn-danger">
+                    Confirm Delete
+                </button>
+
+                <a asp-action="Index" class="btn btn-secondary">Cancel</a>
+            </form>
+        </div>
+    </div>
+</div>

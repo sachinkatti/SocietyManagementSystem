@@ -1,59 +1,36 @@
 ﻿
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
-using Microsoft.Data.SqlClient;
 using SMS.Application;
 
 namespace SMS.UI.Controllers
 {
     public class SecurityGuardsController : Controller
     {
-        private readonly ISecurityGuardService _securityGuardService;
+        private readonly ISecurityGuardService _guardService;
         private readonly IUserService _userService;
 
         public SecurityGuardsController(
-            ISecurityGuardService securityGuardService,
+            ISecurityGuardService guardService,
             IUserService userService)
         {
-            _securityGuardService = securityGuardService;
+            _guardService = guardService;
             _userService = userService;
         }
 
         public async Task<IActionResult> Index()
         {
-            var guards = (await _securityGuardService.GetAllAsync()).ToList();
-            var users = await _userService.GetActiveUsersForDropdownAsync();
-
-            var userLookup = users.ToDictionary(u => u.UserId);
-
-            foreach (var guard in guards)
-            {
-                if (userLookup.TryGetValue(guard.UserId, out var user))
-                {
-                    guard.UserFullName =
-                        $"{user.FirstName} {user.LastName}";
-
-                    guard.UserEmail = user.Email;
-                }
-                else
-                {
-                    guard.UserFullName = "User not found";
-                }
-            }
-
+            var guards = await _guardService.GetAllAsync();
             return View(guards);
         }
 
         public async Task<IActionResult> Details(long id)
         {
-            var guard = await _securityGuardService.GetByIdAsync(id);
+            var guard = await _guardService.GetByIdAsync(id);
 
             if (guard == null)
-            {
                 return NotFound();
-            }
 
-            await LoadUserDetailsAsync(guard);
             return View(guard);
         }
 
@@ -75,14 +52,17 @@ namespace SMS.UI.Controllers
 
             try
             {
-                await _securityGuardService.CreateAsync(dto);
-                TempData["SuccessMessage"] = "Security guard created successfully.";
+                await _guardService.CreateAsync(dto);
+                TempData["Success"] = "Security guard created successfully.";
                 return RedirectToAction(nameof(Index));
             }
-            catch (SqlException)
+            catch (Microsoft.Data.SqlClient.SqlException ex)
+                when (ex.Number == 2627 || ex.Number == 2601)
             {
-                ModelState.AddModelError(string.Empty,
-                    "Unable to create security guard. Verify the selected user exists.");
+                ModelState.AddModelError(
+                    nameof(dto.UserId),
+                    "This user is already registered as a security guard.");
+
                 await LoadUsersAsync(dto.UserId);
                 return View(dto);
             }
@@ -90,26 +70,20 @@ namespace SMS.UI.Controllers
 
         public async Task<IActionResult> Edit(long id)
         {
-            var guard = await _securityGuardService.GetByIdAsync(id);
+            var guard = await _guardService.GetByIdAsync(id);
 
             if (guard == null)
-            {
                 return NotFound();
-            }
 
             await LoadUsersAsync(guard.UserId);
+
             return View(guard);
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(long id, SecurityGuardDto dto)
+        public async Task<IActionResult> Edit(SecurityGuardDto dto)
         {
-            if (id != dto.GuardId)
-            {
-                return BadRequest();
-            }
-
             if (!ModelState.IsValid)
             {
                 await LoadUsersAsync(dto.UserId);
@@ -118,20 +92,21 @@ namespace SMS.UI.Controllers
 
             try
             {
-                var updated = await _securityGuardService.UpdateAsync(dto);
+                var updated = await _guardService.UpdateAsync(dto);
 
                 if (!updated)
-                {
                     return NotFound();
-                }
 
-                TempData["SuccessMessage"] = "Security guard updated successfully.";
+                TempData["Success"] = "Security guard updated successfully.";
                 return RedirectToAction(nameof(Index));
             }
-            catch (SqlException)
+            catch (Microsoft.Data.SqlClient.SqlException ex)
+                when (ex.Number == 2627 || ex.Number == 2601)
             {
-                ModelState.AddModelError(string.Empty,
-                    "Unable to update security guard. Verify the selected user exists.");
+                ModelState.AddModelError(
+                    nameof(dto.UserId),
+                    "This user is already registered as a security guard.");
+
                 await LoadUsersAsync(dto.UserId);
                 return View(dto);
             }
@@ -139,14 +114,11 @@ namespace SMS.UI.Controllers
 
         public async Task<IActionResult> Delete(long id)
         {
-            var guard = await _securityGuardService.GetByIdAsync(id);
+            var guard = await _guardService.GetByIdAsync(id);
 
             if (guard == null)
-            {
                 return NotFound();
-            }
 
-            await LoadUserDetailsAsync(guard);
             return View(guard);
         }
 
@@ -154,48 +126,32 @@ namespace SMS.UI.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(long id)
         {
-            var deleted = await _securityGuardService.DeleteAsync(id);
+            var deleted = await _guardService.DeleteAsync(id);
 
             if (!deleted)
-            {
                 return NotFound();
-            }
 
-            TempData["SuccessMessage"] = "Security guard deactivated successfully.";
+            TempData["Success"] = "Security guard deleted successfully.";
             return RedirectToAction(nameof(Index));
         }
 
         private async Task LoadUsersAsync(long? selectedUserId = null)
         {
-            var users = await _userService.GetActiveUsersForDropdownAsync();
+            var users = (await _userService.GetAllAsync())
+                .Where(u => u.IsActive)
+                .ToList();
 
-            ViewBag.Users = new Microsoft.AspNetCore.Mvc.Rendering.SelectList(
-                users.Select(user => new
-                {
-                    user.UserId,
-                    DisplayName = $"{user.FirstName} {user.MiddleName} {user.LastName} ({user.Email})"
-                        .Replace("  ", " ")
-                        .Trim()
-                }),
+            var guards = await _guardService.GetAllAsync();
+            var assignedUserIds = guards
+                .Select(g => g.UserId)
+                .Where(userId => userId != selectedUserId)
+                .ToHashSet();
+
+            ViewBag.Users = new SelectList(
+                users.Where(u => !assignedUserIds.Contains(u.UserId)),
                 "UserId",
-                "DisplayName",
-                selectedUserId
-            );
-        }
-
-        private async Task LoadUserDetailsAsync(SecurityGuardDto guard)
-        {
-            var users = await _userService.GetActiveUsersForDropdownAsync();
-            var user = users.FirstOrDefault(item => item.UserId == guard.UserId);
-
-            if (user != null)
-            {
-                guard.UserFullName = $"{user.FirstName} {user.MiddleName} {user.LastName}"
-                    .Replace("  ", " ")
-                    .Trim();
-
-                guard.UserEmail = user.Email;
-            }
+                "FullName",
+                selectedUserId);
         }
     }
 }

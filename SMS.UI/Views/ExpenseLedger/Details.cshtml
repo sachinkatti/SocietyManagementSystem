@@ -1,39 +1,70 @@
 ﻿@model SMS.Application.ExpenseLedgerDto
 
 @{
-    ViewData["Title"] = "Expense Entry Details";
+    ViewData["Title"] = "Expense Ledger Details";
 }
 
-<h2>Expense Entry Details</h2>
+<div class="container mt-4">
+    <h2>Expense Ledger Details</h2>
+    <hr />
 
-<dl class="row">
-    <dt class="col-sm-3">Ledger ID</dt>
-    <dd class="col-sm-9">@Model.LedgerId</dd>
+    <dl class="row">
+        <dt class="col-sm-3">Ledger ID</dt>
+        <dd class="col-sm-9">@Model.LedgerId</dd>
 
-    <dt class="col-sm-3">Entry Type</dt>
-    <dd class="col-sm-9">@Model.EntryType</dd>
+        <dt class="col-sm-3">Entry Type</dt>
+        <dd class="col-sm-9">
+            @if (Model.EntryType == "Income")
+            {
+                <span class="badge bg-success">Income</span>
+            }
+            else
+            {
+                <span class="badge bg-danger">Expense</span>
+            }
+        </dd>
 
-    <dt class="col-sm-3">Category</dt>
-    <dd class="col-sm-9">@Model.Category</dd>
+        <dt class="col-sm-3">Category</dt>
+        <dd class="col-sm-9">@Model.Category</dd>
 
-    <dt class="col-sm-3">Amount</dt>
-    <dd class="col-sm-9">@Model.Amount.ToString("N2")</dd>
+        <dt class="col-sm-3">Amount</dt>
+        <dd class="col-sm-9">
+            @Model.Amount.ToString("C2", new System.Globalization.CultureInfo("en-IN"))
+        </dd>
 
-    <dt class="col-sm-3">Description</dt>
-    <dd class="col-sm-9">@(Model.Description ?? "N/A")</dd>
+        <dt class="col-sm-3">Description</dt>
+        <dd class="col-sm-9">@(Model.Description ?? "-")</dd>
 
-    <dt class="col-sm-3">Entry Date</dt>
-    <dd class="col-sm-9">@Model.EntryDate.ToString("dd-MM-yyyy")</dd>
+        <dt class="col-sm-3">Entry Date</dt>
+        <dd class="col-sm-9">@Model.EntryDate.ToString("dd-MMM-yyyy")</dd>
 
-    <dt class="col-sm-3">Recorded By Admin ID</dt>
-    <dd class="col-sm-9">@Model.RecordedByAdminId</dd>
+        <dt class="col-sm-3">Recorded By</dt>
+        <dd class="col-sm-9">
+            @Model.RecordedByAdminName
+            @if (!string.IsNullOrWhiteSpace(Model.Designation))
+            {
+                <span>(@Model.Designation)</span>
+            }
+        </dd>
 
-    <dt class="col-sm-3">Tenant ID</dt>
-    <dd class="col-sm-9">@Model.TenantId</dd>
+        <dt class="col-sm-3">Tenant</dt>
+        <dd class="col-sm-9">@Model.TenantName</dd>
 
-    <dt class="col-sm-3">Created On</dt>
-    <dd class="col-sm-9">@Model.CreatedOn</dd>
-</dl>
+        <dt class="col-sm-3">Created On</dt>
+        <dd class="col-sm-9">
+            @(Model.CreatedOn == default
+                ? "-"
+                : Model.CreatedOn.ToString("dd-MMM-yyyy hh:mm tt"))
+        </dd>
 
-<a asp-action="Edit" asp-route-id="@Model.LedgerId" class="btn btn-primary">Edit</a>
-<a asp-action="Index" class="btn btn-secondary">Back</a>
+        <dt class="col-sm-3">Last Modified</dt>
+        <dd class="col-sm-9">
+            @(Model.ModifyOn?.ToString("dd-MMM-yyyy hh:mm tt") ?? "-")
+        </dd>
+    </dl>
+
+    <a asp-action="Edit" asp-route-id="@Model.LedgerId"
+       class="btn btn-warning">Edit</a>
+
+    <a asp-action="Index" class="btn btn-secondary">Back to List</a>
+</div>

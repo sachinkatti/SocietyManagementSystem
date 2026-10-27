@@ -1,17 +1,45 @@
 ﻿@model SMS.Application.VehicleRegistryDto
 
-<h2>Vehicle Details</h2>
+@{
+    ViewData["Title"] = "Delete Vehicle";
+}
 
-<dl class="row">
-    <dt class="col-sm-3">Flat</dt>
-    <dd class="col-sm-9">@Model.FlatNumber</dd>
-    <dt class="col-sm-3">Vehicle Number</dt>
-    <dd class="col-sm-9">@Model.VehicleNumber</dd>
-    <dt class="col-sm-3">Vehicle Type</dt>
-    <dd class="col-sm-9">@Model.VehicleType</dd>
-    <dt class="col-sm-3">Description</dt>
-    <dd class="col-sm-9">@Model.Description</dd>
-</dl>
+<div class="container py-4" style="max-width:750px;">
+    <h2 class="fw-bold mb-1">Delete Vehicle</h2>
+    <p class="text-muted mb-4">Review the vehicle before deactivating it.</p>
 
-<a asp-action="Index" class="btn btn-secondary">Back</a>
-<a asp-action="Edit" asp-route-id="@Model.VehicleId" class="btn btn-primary">Edit</a>
+    <div class="card border-0 shadow-sm">
+        <div class="card-body p-4">
+            <div class="alert alert-warning">
+                Are you sure you want to deactivate this vehicle registration?
+                The record will remain in the database.
+            </div>
+
+            <dl class="row">
+                <dt class="col-sm-4 mb-3">Vehicle Number</dt>
+                <dd class="col-sm-8 mb-3 fw-bold">@Model.VehicleNumber</dd>
+
+                <dt class="col-sm-4 mb-3">Vehicle Type</dt>
+                <dd class="col-sm-8 mb-3">@Model.VehicleType</dd>
+
+                <dt class="col-sm-4 mb-3">Tenant</dt>
+                <dd class="col-sm-8 mb-3">@Model.TenantName</dd>
+
+                <dt class="col-sm-4 mb-3">Wing / Flat</dt>
+                <dd class="col-sm-8 mb-3">@Model.WingName / @Model.FlatNumber</dd>
+            </dl>
+
+            <form asp-action="Delete" asp-route-id="@Model.VehicleId" method="post">
+                @Html.AntiForgeryToken()
+
+                <button type="submit" class="btn btn-danger">
+                    Confirm Delete
+                </button>
+
+                <a asp-action="Index" class="btn btn-outline-secondary">
+                    Cancel
+                </a>
+            </form>
+        </div>
+    </div>
+</div>

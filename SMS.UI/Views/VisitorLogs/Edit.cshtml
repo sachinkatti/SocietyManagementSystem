@@ -1,93 +1,169 @@
 ﻿@model SMS.Application.VisitorLogDto
 
 @{
-    ViewData["Title"] = "Edit Visitor";
+    ViewData["Title"] = "Edit Visitor Log";
 }
 
-<h2>Edit Visitor</h2>
+<h2>Edit Visitor Log</h2>
 
 <form asp-action="Edit" asp-route-id="@Model.VisitorId" method="post">
     @Html.AntiForgeryToken()
-    <input asp-for="VisitorId" type="hidden" />
+
+    <input type="hidden" asp-for="VisitorId" />
 
     <div asp-validation-summary="ModelOnly" class="text-danger"></div>
 
     <div class="mb-3">
+        <label asp-for="TenantId" class="form-label">Tenant</label>
+        <select asp-for="TenantId"
+                asp-items="ViewBag.Tenants"
+                class="form-select"
+                id="TenantId">
+            <option value="">-- Select Tenant --</option>
+        </select>
+        <span asp-validation-for="TenantId" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
         <label asp-for="VisitorName" class="form-label"></label>
-        <input asp-for="VisitorName" class="form-control" maxlength="100" />
+        <input asp-for="VisitorName" class="form-control" />
         <span asp-validation-for="VisitorName" class="text-danger"></span>
     </div>
 
     <div class="mb-3">
         <label asp-for="PhoneNumber" class="form-label"></label>
-        <input asp-for="PhoneNumber" class="form-control" maxlength="15" />
+        <input asp-for="PhoneNumber" class="form-control" />
         <span asp-validation-for="PhoneNumber" class="text-danger"></span>
     </div>
 
     <div class="mb-3">
-        <label asp-for="VisitingFlatId" class="form-label">Visiting Flat</label>
-        <select asp-for="VisitingFlatId" asp-items="ViewBag.Flats" class="form-select">
-            <option value="">-- Select Flat --</option>
+        <label asp-for="VisitingFlatId" class="form-label">Flat</label>
+        <select asp-for="VisitingFlatId" class="form-select" id="VisitingFlatId">
+            <option value="@Model.VisitingFlatId">
+                @(Model.FlatNumber ?? "Current flat")
+            </option>
         </select>
         <span asp-validation-for="VisitingFlatId" class="text-danger"></span>
     </div>
 
     <div class="mb-3">
         <label asp-for="Purpose" class="form-label"></label>
-        <input asp-for="Purpose" class="form-control" maxlength="50" />
+        <select asp-for="Purpose" class="form-select">
+            <option value="Guest">Guest</option>
+            <option value="Delivery">Delivery</option>
+            <option value="Service">Service</option>
+            <option value="Personal">Personal</option>
+            <option value="Other">Other</option>
+        </select>
         <span asp-validation-for="Purpose" class="text-danger"></span>
     </div>
 
     <div class="mb-3">
         <label asp-for="VehicleNumber" class="form-label"></label>
-        <input asp-for="VehicleNumber" class="form-control" maxlength="20" />
+        <input asp-for="VehicleNumber" class="form-control" />
         <span asp-validation-for="VehicleNumber" class="text-danger"></span>
     </div>
 
     <div class="mb-3">
         <label asp-for="ApprovalMethod" class="form-label"></label>
-        <input asp-for="ApprovalMethod" class="form-control" maxlength="20" />
+        <select asp-for="ApprovalMethod" class="form-select">
+            <option value="App">App</option>
+            <option value="Manual">Manual</option>
+            <option value="Pre-Approved">Pre-Approved</option>
+            <option value="Resident">Resident</option>
+        </select>
         <span asp-validation-for="ApprovalMethod" class="text-danger"></span>
     </div>
 
     <div class="mb-3">
         <label asp-for="EntryTime" class="form-label"></label>
-        <input asp-for="EntryTime" type="datetime-local"
-               asp-format="{0:yyyy-MM-ddTHH:mm}" class="form-control" />
+        <input asp-for="EntryTime"
+               type="datetime-local"
+               class="form-control"
+               value="@Model.EntryTime.ToString("yyyy-MM-ddTHH:mm")" />
         <span asp-validation-for="EntryTime" class="text-danger"></span>
     </div>
 
     <div class="mb-3">
         <label asp-for="ExitTime" class="form-label"></label>
-        <input asp-for="ExitTime" type="datetime-local"
-               asp-format="{0:yyyy-MM-ddTHH:mm}" class="form-control" />
+        <input asp-for="ExitTime"
+               type="datetime-local"
+               class="form-control"
+               value="@(Model.ExitTime?.ToString("yyyy-MM-ddTHH:mm"))" />
         <span asp-validation-for="ExitTime" class="text-danger"></span>
     </div>
 
     <div class="mb-3">
-        <label asp-for="LoggedByGuardId" class="form-label">Logged By Guard</label>
-        <select asp-for="LoggedByGuardId" asp-items="ViewBag.Guards" class="form-select">
-            <option value="">-- Select Guard (Optional) --</option>
+        <label asp-for="LoggedByGuardId" class="form-label">Security Guard</label>
+        <select asp-for="LoggedByGuardId"
+                class="form-select"
+                id="LoggedByGuardId">
+            <option value="@Model.LoggedByGuardId">
+                @(Model.GuardName ?? "Current guard")
+            </option>
         </select>
         <span asp-validation-for="LoggedByGuardId" class="text-danger"></span>
     </div>
 
     <div class="mb-3">
         <label asp-for="Description" class="form-label"></label>
-        <textarea asp-for="Description" class="form-control" maxlength="500"></textarea>
+        <textarea asp-for="Description" class="form-control"></textarea>
         <span asp-validation-for="Description" class="text-danger"></span>
     </div>
 
-    <div class="mb-3">
-        <label asp-for="TenantId" class="form-label">Tenant ID (Optional)</label>
-        <input asp-for="TenantId" type="number" min="1" class="form-control" />
-        <span asp-validation-for="TenantId" class="text-danger"></span>
-    </div>
-
     <button type="submit" class="btn btn-primary">Update</button>
-    <a asp-action="Index" class="btn btn-secondary">Cancel</a>
+    <a asp-action="Index" class="btn btn-secondary">Back</a>
 </form>
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
+
+    <script>
+        $(document).ready(function () {
+            function loadOptions(tenantId, selectedFlatId, selectedGuardId) {
+                $("#VisitingFlatId").empty()
+                    .append('<option value="">-- Select Flat --</option>');
+
+                $("#LoggedByGuardId").empty()
+                    .append('<option value="">-- Select Guard --</option>');
+
+                if (!tenantId) return;
+
+                $.getJSON('@Url.Action("GetFlatsByTenant", "VisitorLogs")',
+                    { tenantId: tenantId },
+                    function (data) {
+                        $.each(data, function (index, item) {
+                            $("#VisitingFlatId").append(
+                                $('<option></option>')
+                                    .val(item.id)
+                                    .text(item.text));
+                        });
+
+                        $("#VisitingFlatId").val(selectedFlatId);
+                    });
+
+                $.getJSON('@Url.Action("GetGuardsByTenant", "VisitorLogs")',
+                    { tenantId: tenantId },
+                    function (data) {
+                        $.each(data, function (index, item) {
+                            $("#LoggedByGuardId").append(
+                                $('<option></option>')
+                                    .val(item.id)
+                                    .text(item.text));
+                        });
+
+                        $("#LoggedByGuardId").val(selectedGuardId);
+                    });
+            }
+
+            $("#TenantId").change(function () {
+                loadOptions($(this).val(), null, null);
+            });
+
+            loadOptions(
+                $("#TenantId").val(),
+                '@Model.VisitingFlatId',
+                '@(Model.LoggedByGuardId?.ToString() ?? "")');
+        });
+    </script>
 }

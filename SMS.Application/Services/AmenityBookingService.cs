@@ -1,5 +1,4 @@
-﻿
-using SMS.Domain;
+﻿using SMS.Domain;
 using SMS.Infrastructure;
 
 namespace SMS.Application
@@ -8,7 +7,8 @@ namespace SMS.Application
     {
         private readonly IAmenityBookingRepository _repository;
 
-        public AmenityBookingService(IAmenityBookingRepository repository)
+        public AmenityBookingService(
+            IAmenityBookingRepository repository)
         {
             _repository = repository;
         }
@@ -17,7 +17,7 @@ namespace SMS.Application
         {
             var bookings = await _repository.GetAllAsync();
 
-            return bookings.Select(MapToDto);
+            return bookings.Select(MapToDto).ToList();
         }
 
         public async Task<AmenityBookingDto?> GetByIdAsync(long bookingId)
@@ -29,47 +29,37 @@ namespace SMS.Application
 
         public async Task<long> CreateAsync(AmenityBookingDto dto)
         {
-            var booking = new AmenityBooking
-            {
-                AmenityId = dto.AmenityId,
-                FlatId = dto.FlatId,
-                SlotDate = dto.SlotDate.Date,
-                SlotTime = dto.SlotTime.Trim(),
-                DepositPaid = dto.DepositPaid,
-                Status = dto.Status.Trim(),
-                Description = dto.Description,
-                IsActive = true,
-                CreatedOn = DateTime.UtcNow,
-                CreatedBy = dto.CreatedBy,
-                TenantId = dto.TenantId
-            };
+            var booking = MapToEntity(dto);
 
             return await _repository.CreateAsync(booking);
         }
 
         public async Task<bool> UpdateAsync(AmenityBookingDto dto)
         {
-            var booking = new AmenityBooking
-            {
-                BookingId = dto.BookingId,
-                AmenityId = dto.AmenityId,
-                FlatId = dto.FlatId,
-                SlotDate = dto.SlotDate.Date,
-                SlotTime = dto.SlotTime.Trim(),
-                DepositPaid = dto.DepositPaid,
-                Status = dto.Status.Trim(),
-                Description = dto.Description,
-                TenantId = dto.TenantId,
-                ModifyOn = DateTime.UtcNow,
-                ModifyBy = dto.ModifyBy
-            };
+            var booking = MapToEntity(dto);
+
+            booking.BookingId = dto.BookingId;
+            booking.ModifyBy = dto.ModifyBy;
 
             return await _repository.UpdateAsync(booking);
         }
 
-        public Task<bool> DeleteAsync(long bookingId)
+        public async Task<bool> DeleteAsync(
+            long bookingId, long? modifyBy = null)
         {
-            return _repository.DeleteAsync(bookingId);
+            return await _repository.DeleteAsync(bookingId, modifyBy);
+        }
+
+        public async Task<IEnumerable<AmenityBookingAmenityOption>>
+            GetAmenitiesByTenantAsync(long tenantId)
+        {
+            return await _repository.GetAmenitiesByTenantAsync(tenantId);
+        }
+
+        public async Task<IEnumerable<AmenityBookingFlatOption>>
+            GetFlatsByTenantAsync(long tenantId)
+        {
+            return await _repository.GetFlatsByTenantAsync(tenantId);
         }
 
         private static AmenityBookingDto MapToDto(AmenityBooking booking)
@@ -77,19 +67,54 @@ namespace SMS.Application
             return new AmenityBookingDto
             {
                 BookingId = booking.BookingId,
+
+                TenantId = booking.TenantId,
+                TenantName = booking.TenantName,
+
                 AmenityId = booking.AmenityId,
+                AmenityName = booking.AmenityName,
+
                 FlatId = booking.FlatId,
+                FlatNumber = booking.FlatNumber,
+                WingName = booking.WingName,
+
                 SlotDate = booking.SlotDate,
                 SlotTime = booking.SlotTime,
                 DepositPaid = booking.DepositPaid,
                 Status = booking.Status,
                 Description = booking.Description,
+
                 IsActive = booking.IsActive,
+
                 CreatedOn = booking.CreatedOn,
                 CreatedBy = booking.CreatedBy,
                 ModifyOn = booking.ModifyOn,
-                ModifyBy = booking.ModifyBy,
-                TenantId = booking.TenantId
+                ModifyBy = booking.ModifyBy
+            };
+        }
+
+        private static AmenityBooking MapToEntity(AmenityBookingDto dto)
+        {
+            return new AmenityBooking
+            {
+                BookingId = dto.BookingId,
+
+                TenantId = dto.TenantId,
+                AmenityId = dto.AmenityId,
+                FlatId = dto.FlatId,
+
+                SlotDate = dto.SlotDate,
+                SlotTime = dto.SlotTime,
+                DepositPaid = dto.DepositPaid,
+                Status = dto.Status,
+                Description = dto.Description,
+
+                IsActive = dto.IsActive,
+
+                CreatedOn = dto.CreatedOn,
+                CreatedBy = dto.CreatedBy,
+                ModifyOn = dto.ModifyOn,
+                ModifyBy = dto.ModifyBy
             };
         }
     }

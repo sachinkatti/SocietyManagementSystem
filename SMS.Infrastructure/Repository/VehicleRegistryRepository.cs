@@ -1,118 +1,194 @@
-﻿using Microsoft.Data.SqlClient;
+﻿
+using Microsoft.Data.SqlClient;
 using SMS.Domain;
+using System.Data;
 
 namespace SMS.Infrastructure
 {
     public class VehicleRegistryRepository : IVehicleRegistryRepository
     {
-        private readonly DbConnectionFactory _factory;
+        private readonly DbConnectionFactory _connectionFactory;
 
-        public VehicleRegistryRepository(DbConnectionFactory factory)
+        public VehicleRegistryRepository(DbConnectionFactory connectionFactory)
         {
-            _factory = factory;
+            _connectionFactory = connectionFactory;
         }
 
         public async Task<IEnumerable<VehicleRegistry>> GetAllAsync()
         {
-            var list = new List<VehicleRegistry>();
-            using var con = _factory.CreateConnection();
-            using var cmd = new SqlCommand(
-                "SELECT * FROM VehicleRegistry WHERE IsActive=1 ORDER BY VehicleId DESC", con);
+            var vehicles = new List<VehicleRegistry>();
 
-            await con.OpenAsync();
-            using var r = await cmd.ExecuteReaderAsync();
+            using var connection = _connectionFactory.CreateConnection();
+            using var command = new SqlCommand(
+                "dbo.GetAllVehicleRegistry", connection);
 
-            while (await r.ReadAsync())
-                list.Add(Map(r));
+            command.CommandType = CommandType.StoredProcedure;
 
-            return list;
+            await connection.OpenAsync();
+
+            using var reader = await command.ExecuteReaderAsync();
+
+            while (await reader.ReadAsync())
+            {
+                vehicles.Add(MapVehicle(reader));
+            }
+
+            return vehicles;
         }
 
-        public async Task<VehicleRegistry?> GetByIdAsync(long id)
+        public async Task<VehicleRegistry?> GetByIdAsync(long vehicleId)
         {
-            using var con = _factory.CreateConnection();
-            using var cmd = new SqlCommand(
-                "SELECT * FROM VehicleRegistry WHERE VehicleId=@Id AND IsActive=1", con);
-            cmd.Parameters.AddWithValue("@Id", id);
+            using var connection = _connectionFactory.CreateConnection();
+            using var command = new SqlCommand(
+                "dbo.GetVehicleRegistryById", connection);
 
-            await con.OpenAsync();
-            using var r = await cmd.ExecuteReaderAsync();
+            command.CommandType = CommandType.StoredProcedure;
+            command.Parameters.Add("@VehicleId", SqlDbType.BigInt).Value = vehicleId;
 
-            return await r.ReadAsync() ? Map(r) : null;
+            await connection.OpenAsync();
+
+            using var reader = await command.ExecuteReaderAsync();
+
+            return await reader.ReadAsync() ? MapVehicle(reader) : null;
         }
 
-        public async Task<long> CreateAsync(VehicleRegistry v)
+        public async Task<long> CreateAsync(VehicleRegistry vehicle)
         {
-            using var con = _factory.CreateConnection();
-            using var cmd = new SqlCommand(@"
-                INSERT INTO VehicleRegistry
-                (FlatId, VehicleNumber, VehicleType, Description, TenantId,
-                 IsActive, CreatedOn, CreatedBy)
-                OUTPUT INSERTED.VehicleId
-                VALUES (@FlatId, @VehicleNumber, @VehicleType, @Description,
-                        @TenantId, 1, SYSDATETIME(), @CreatedBy)", con);
+            using var connection = _connectionFactory.CreateConnection();
+            using var command = new SqlCommand(
+                "dbo.InsertVehicleRegistry", connection);
 
-            AddParameters(cmd, v);
-            cmd.Parameters.AddWithValue("@CreatedBy", (object?)v.CreatedBy ?? DBNull.Value);
+            command.CommandType = CommandType.StoredProcedure;
+            AddVehicleParameters(command, vehicle, isUpdate: false);
 
-            await con.OpenAsync();
-            return Convert.ToInt64(await cmd.ExecuteScalarAsync());
+            await connection.OpenAsync();
+
+            var result = await command.ExecuteScalarAsync();
+
+            return Convert.ToInt64(result);
         }
 
-        public async Task<bool> UpdateAsync(VehicleRegistry v)
+        public async Task<bool> UpdateAsync(VehicleRegistry vehicle)
         {
-            using var con = _factory.CreateConnection();
-            using var cmd = new SqlCommand(@"
-                UPDATE VehicleRegistry SET
-                    FlatId=@FlatId, VehicleNumber=@VehicleNumber,
-                    VehicleType=@VehicleType, Description=@Description,
-                    TenantId=@TenantId, ModifyOn=SYSDATETIME(), ModifyBy=@ModifyBy
-                WHERE VehicleId=@Id AND IsActive=1", con);
+            using var connection = _connectionFactory.CreateConnection();
+            using var command = new SqlCommand(
+                "dbo.UpdateVehicleRegistry", connection);
 
-            AddParameters(cmd, v);
-            cmd.Parameters.AddWithValue("@Id", v.VehicleId);
-            cmd.Parameters.AddWithValue("@ModifyBy", (object?)v.ModifyBy ?? DBNull.Value);
+            command.CommandType = CommandType.StoredProcedure;
 
-            await con.OpenAsync();
-            return await cmd.ExecuteNonQueryAsync() > 0;
+            command.Parameters.Add("@VehicleId", SqlDbType.BigInt).Value =
+                vehicle.VehicleId;
+
+            AddVehicleParameters(command, vehicle, isUpdate: true);
+
+            await connection.OpenAsync();
+
+            var result = await command.ExecuteScalarAsync();
+
+            return result != null && Convert.ToInt32(result) > 0;
         }
 
-        public async Task<bool> DeleteAsync(long id)
+        public async Task<bool> DeleteAsync(long vehicleId, long? modifyBy = null)
         {
-            using var con = _factory.CreateConnection();
-            using var cmd = new SqlCommand(@"
-                UPDATE VehicleRegistry SET IsActive=0, ModifyOn=SYSDATETIME()
-                WHERE VehicleId=@Id AND IsActive=1", con);
-            cmd.Parameters.AddWithValue("@Id", id);
+            using var connection = _connectionFactory.CreateConnection();
+            using var command = new SqlCommand(
+                "dbo.DeleteVehicleRegistry", connection);
 
-            await con.OpenAsync();
-            return await cmd.ExecuteNonQueryAsync() > 0;
+            command.CommandType = CommandType.StoredProcedure;
+
+            command.Parameters.Add("@VehicleId", SqlDbType.BigInt).Value =
+                vehicleId;
+
+            command.Parameters.Add("@ModifyBy", SqlDbType.BigInt).Value =
+                (object?)modifyBy ?? DBNull.Value;
+
+            await connection.OpenAsync();
+
+            var result = await command.ExecuteScalarAsync();
+
+            return result != null && Convert.ToInt32(result) > 0;
         }
 
-        private static void AddParameters(SqlCommand cmd, VehicleRegistry v)
+        public async Task<IEnumerable<VehicleFlatOption>> GetFlatsByTenantAsync(
+            long tenantId)
         {
-            cmd.Parameters.AddWithValue("@FlatId", v.FlatId);
-            cmd.Parameters.AddWithValue("@VehicleNumber", v.VehicleNumber);
-            cmd.Parameters.AddWithValue("@VehicleType", v.VehicleType);
-            cmd.Parameters.AddWithValue("@Description", (object?)v.Description ?? DBNull.Value);
-            cmd.Parameters.AddWithValue("@TenantId", v.TenantId);
+            var flats = new List<VehicleFlatOption>();
+
+            using var connection = _connectionFactory.CreateConnection();
+            using var command = new SqlCommand(
+                "dbo.GetVehicleFlatsByTenant", connection);
+
+            command.CommandType = CommandType.StoredProcedure;
+            command.Parameters.Add("@TenantId", SqlDbType.BigInt).Value = tenantId;
+
+            await connection.OpenAsync();
+
+            using var reader = await command.ExecuteReaderAsync();
+
+            while (await reader.ReadAsync())
+            {
+                flats.Add(new VehicleFlatOption
+                {
+                    FlatId = Convert.ToInt64(reader["FlatId"]),
+                    FlatNumber = reader["FlatNumber"]?.ToString() ?? string.Empty,
+                    WingId = Convert.ToInt64(reader["WingId"]),
+                    WingName = reader["WingName"]?.ToString() ?? string.Empty
+                });
+            }
+
+            return flats;
         }
 
-        private static VehicleRegistry Map(SqlDataReader r)
+        private static void AddVehicleParameters(
+            SqlCommand command,
+            VehicleRegistry vehicle,
+            bool isUpdate)
+        {
+            command.Parameters.Add("@TenantId", SqlDbType.BigInt).Value =
+                vehicle.TenantId;
+
+            command.Parameters.Add("@FlatId", SqlDbType.BigInt).Value =
+                vehicle.FlatId;
+
+            command.Parameters.Add("@VehicleNumber", SqlDbType.NVarChar, 40).Value =
+                vehicle.VehicleNumber.Trim().ToUpperInvariant();
+
+            command.Parameters.Add("@VehicleType", SqlDbType.NVarChar, 40).Value =
+                vehicle.VehicleType.Trim();
+
+            command.Parameters.Add("@Description", SqlDbType.NVarChar, 1000).Value =
+                (object?)vehicle.Description ?? DBNull.Value;
+
+            string auditParameter = isUpdate ? "@ModifyBy" : "@CreatedBy";
+
+            command.Parameters.Add(auditParameter, SqlDbType.BigInt).Value =
+                (object?)(isUpdate ? vehicle.ModifyBy : vehicle.CreatedBy)
+                ?? DBNull.Value;
+        }
+
+        private static VehicleRegistry MapVehicle(SqlDataReader reader)
         {
             return new VehicleRegistry
             {
-                VehicleId = r.GetInt64(r.GetOrdinal("VehicleId")),
-                FlatId = r.GetInt64(r.GetOrdinal("FlatId")),
-                VehicleNumber = r.GetString(r.GetOrdinal("VehicleNumber")),
-                VehicleType = r.GetString(r.GetOrdinal("VehicleType")),
-                Description = r.IsDBNull(r.GetOrdinal("Description")) ? null : r.GetString(r.GetOrdinal("Description")),
-                TenantId = r.GetInt64(r.GetOrdinal("TenantId")),
-                IsActive = r.GetBoolean(r.GetOrdinal("IsActive")),
-                CreatedOn = r.GetDateTime(r.GetOrdinal("CreatedOn")),
-                CreatedBy = r.IsDBNull(r.GetOrdinal("CreatedBy")) ? null : r.GetInt64(r.GetOrdinal("CreatedBy")),
-                ModifyOn = r.IsDBNull(r.GetOrdinal("ModifyOn")) ? null : r.GetDateTime(r.GetOrdinal("ModifyOn")),
-                ModifyBy = r.IsDBNull(r.GetOrdinal("ModifyBy")) ? null : r.GetInt64(r.GetOrdinal("ModifyBy"))
+                VehicleId = Convert.ToInt64(reader["VehicleId"]),
+                TenantId = Convert.ToInt64(reader["TenantId"]),
+                TenantName = reader["TenantName"]?.ToString() ?? string.Empty,
+                FlatId = Convert.ToInt64(reader["FlatId"]),
+                FlatNumber = reader["FlatNumber"]?.ToString() ?? string.Empty,
+                WingName = reader["WingName"]?.ToString() ?? string.Empty,
+                VehicleNumber = reader["VehicleNumber"]?.ToString() ?? string.Empty,
+                VehicleType = reader["VehicleType"]?.ToString() ?? string.Empty,
+                Description = reader["Description"] == DBNull.Value
+                    ? null
+                    : reader["Description"].ToString(),
+                IsActive = Convert.ToBoolean(reader["IsActive"]),
+                CreatedOn = Convert.ToDateTime(reader["CreatedOn"]),
+                CreatedBy = reader["CreatedBy"] == DBNull.Value
+                    ? null : Convert.ToInt64(reader["CreatedBy"]),
+                ModifyOn = reader["ModifyOn"] == DBNull.Value
+                    ? null : Convert.ToDateTime(reader["ModifyOn"]),
+                ModifyBy = reader["ModifyBy"] == DBNull.Value
+                    ? null : Convert.ToInt64(reader["ModifyBy"])
             };
         }
     }

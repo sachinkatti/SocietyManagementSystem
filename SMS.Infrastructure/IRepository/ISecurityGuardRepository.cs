@@ -9,6 +9,6 @@ namespace SMS.Infrastructure
         Task<SecurityGuard?> GetByIdAsync(long guardId);
         Task<long> CreateAsync(SecurityGuard guard);
         Task<bool> UpdateAsync(SecurityGuard guard);
-        Task<bool> DeleteAsync(long guardId);
+        Task<bool> DeleteAsync(long guardId, long? modifyBy = null);
     }
 }

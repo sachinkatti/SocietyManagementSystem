@@ -20,13 +20,9 @@ namespace SMS.Infrastructure
 
             using var connection = _connectionFactory.CreateConnection();
             using var command = new SqlCommand(
-                @"SELECT AmenityId, Name, DepositRequired, MaxSlotHours,
-                         Description, IsActive, CreatedOn, CreatedBy,
-                         ModifyOn, ModifyBy, TenantId
-                  FROM Amenities
-                  WHERE IsActive = 1
-                  ORDER BY AmenityId DESC",
-                connection);
+                "dbo.GetAllAmenities", connection);
+
+            command.CommandType = CommandType.StoredProcedure;
 
             await connection.OpenAsync();
 
@@ -44,14 +40,11 @@ namespace SMS.Infrastructure
         {
             using var connection = _connectionFactory.CreateConnection();
             using var command = new SqlCommand(
-                @"SELECT AmenityId, Name, DepositRequired, MaxSlotHours,
-                         Description, IsActive, CreatedOn, CreatedBy,
-                         ModifyOn, ModifyBy, TenantId
-                  FROM Amenities
-                  WHERE AmenityId = @AmenityId AND IsActive = 1",
-                connection);
+                "dbo.GetAmenityById", connection);
 
-            command.Parameters.Add("@AmenityId", SqlDbType.BigInt).Value = amenityId;
+            command.CommandType = CommandType.StoredProcedure;
+            command.Parameters.Add("@AmenityId", SqlDbType.BigInt).Value =
+                amenityId;
 
             await connection.OpenAsync();
 
@@ -69,110 +62,129 @@ namespace SMS.Infrastructure
         {
             using var connection = _connectionFactory.CreateConnection();
             using var command = new SqlCommand(
-                @"INSERT INTO Amenities
-                    (Name, DepositRequired, MaxSlotHours, Description,
-                     IsActive, CreatedOn, CreatedBy, TenantId)
-                  VALUES
-                    (@Name, @DepositRequired, @MaxSlotHours, @Description,
-                     @IsActive, @CreatedOn, @CreatedBy, @TenantId);
-                  SELECT CAST(SCOPE_IDENTITY() AS BIGINT);",
-                connection);
+                "dbo.InsertAmenity", connection);
 
-            AddParameters(command, amenity);
+            command.CommandType = CommandType.StoredProcedure;
 
-            command.Parameters.Add("@IsActive", SqlDbType.Bit).Value = amenity.IsActive;
-            command.Parameters.Add("@CreatedOn", SqlDbType.DateTime2).Value = amenity.CreatedOn;
-            command.Parameters.Add("@CreatedBy", SqlDbType.BigInt).Value =
-                (object?)amenity.CreatedBy ?? DBNull.Value;
+            AddAmenityParameters(command, amenity, isUpdate: false);
 
             await connection.OpenAsync();
 
-            return Convert.ToInt64(await command.ExecuteScalarAsync());
+            object? result = await command.ExecuteScalarAsync();
+
+            return Convert.ToInt64(result);
         }
 
         public async Task<bool> UpdateAsync(Amenity amenity)
         {
             using var connection = _connectionFactory.CreateConnection();
             using var command = new SqlCommand(
-                @"UPDATE Amenities
-                  SET Name = @Name,
-                      DepositRequired = @DepositRequired,
-                      MaxSlotHours = @MaxSlotHours,
-                      Description = @Description,
-                      ModifyOn = @ModifyOn,
-                      ModifyBy = @ModifyBy
-                  WHERE AmenityId = @AmenityId AND IsActive = 1",
-                connection);
+                "dbo.UpdateAmenity", connection);
 
-            AddParameters(command, amenity);
+            command.CommandType = CommandType.StoredProcedure;
 
-            command.Parameters.Add("@AmenityId", SqlDbType.BigInt).Value = amenity.AmenityId;
-            command.Parameters.Add("@ModifyOn", SqlDbType.DateTime2).Value =
-                (object?)amenity.ModifyOn ?? DBNull.Value;
-            command.Parameters.Add("@ModifyBy", SqlDbType.BigInt).Value =
-                (object?)amenity.ModifyBy ?? DBNull.Value;
+            command.Parameters.Add("@AmenityId", SqlDbType.BigInt).Value =
+                amenity.AmenityId;
+
+            AddAmenityParameters(command, amenity, isUpdate: true);
 
             await connection.OpenAsync();
 
-            return await command.ExecuteNonQueryAsync() > 0;
+            object? result = await command.ExecuteScalarAsync();
+
+            return Convert.ToInt32(result) > 0;
         }
 
-        public async Task<bool> DeleteAsync(long amenityId)
+        public async Task<bool> DeleteAsync(
+            long amenityId, long? modifyBy = null)
         {
             using var connection = _connectionFactory.CreateConnection();
             using var command = new SqlCommand(
-                @"UPDATE Amenities
-                  SET IsActive = 0,
-                      ModifyOn = @ModifyOn
-                  WHERE AmenityId = @AmenityId AND IsActive = 1",
-                connection);
+                "dbo.DeleteAmenity", connection);
 
-            command.Parameters.Add("@AmenityId", SqlDbType.BigInt).Value = amenityId;
-            command.Parameters.Add("@ModifyOn", SqlDbType.DateTime2).Value = DateTime.UtcNow;
+            command.CommandType = CommandType.StoredProcedure;
+
+            command.Parameters.Add("@AmenityId", SqlDbType.BigInt).Value =
+                amenityId;
+
+            command.Parameters.Add("@ModifyBy", SqlDbType.BigInt).Value =
+                (object?)modifyBy ?? DBNull.Value;
 
             await connection.OpenAsync();
 
-            return await command.ExecuteNonQueryAsync() > 0;
+            object? result = await command.ExecuteScalarAsync();
+
+            return Convert.ToInt32(result) > 0;
         }
 
-        private static void AddParameters(SqlCommand command, Amenity amenity)
+        private static void AddAmenityParameters(
+            SqlCommand command,
+            Amenity amenity,
+            bool isUpdate)
         {
-            command.Parameters.Add("@Name", SqlDbType.NVarChar, 100).Value = amenity.Name;
+            if (!isUpdate)
+            {
+                command.Parameters.Add("@TenantId", SqlDbType.BigInt).Value =
+                    amenity.TenantId;
+            }
+            else
+            {
+                command.Parameters.Add("@TenantId", SqlDbType.BigInt).Value =
+                    amenity.TenantId;
+            }
 
-            var depositParameter = command.Parameters.Add("@DepositRequired", SqlDbType.Decimal);
+            command.Parameters.Add("@Name", SqlDbType.NVarChar, 200).Value =
+                amenity.Name.Trim();
+
+            var depositParameter = command.Parameters.Add(
+                "@DepositRequired", SqlDbType.Decimal);
+
             depositParameter.Precision = 18;
             depositParameter.Scale = 2;
             depositParameter.Value = amenity.DepositRequired;
 
-            command.Parameters.Add("@MaxSlotHours", SqlDbType.Int).Value = amenity.MaxSlotHours;
-            command.Parameters.Add("@Description", SqlDbType.NVarChar, 500).Value =
+            command.Parameters.Add("@MaxSlotHours", SqlDbType.Int).Value =
+                amenity.MaxSlotHours;
+
+            command.Parameters.Add("@Description", SqlDbType.NVarChar, 1000).Value =
                 (object?)amenity.Description ?? DBNull.Value;
-            command.Parameters.Add("@TenantId", SqlDbType.BigInt).Value = amenity.TenantId;
+
+            if (isUpdate)
+            {
+                command.Parameters.Add("@ModifyBy", SqlDbType.BigInt).Value =
+                    (object?)amenity.ModifyBy ?? DBNull.Value;
+            }
+            else
+            {
+                command.Parameters.Add("@CreatedBy", SqlDbType.BigInt).Value =
+                    (object?)amenity.CreatedBy ?? DBNull.Value;
+            }
         }
 
         private static Amenity MapAmenity(SqlDataReader reader)
         {
             return new Amenity
             {
-                AmenityId = reader.GetInt64(reader.GetOrdinal("AmenityId")),
-                Name = reader.GetString(reader.GetOrdinal("Name")),
-                DepositRequired = reader.GetDecimal(reader.GetOrdinal("DepositRequired")),
-                MaxSlotHours = reader.GetInt32(reader.GetOrdinal("MaxSlotHours")),
-                Description = reader.IsDBNull(reader.GetOrdinal("Description"))
+                AmenityId = Convert.ToInt64(reader["AmenityId"]),
+                Name = reader["Name"].ToString() ?? string.Empty,
+                DepositRequired = Convert.ToDecimal(reader["DepositRequired"]),
+                MaxSlotHours = Convert.ToInt32(reader["MaxSlotHours"]),
+                Description = reader["Description"] == DBNull.Value
                     ? null
-                    : reader.GetString(reader.GetOrdinal("Description")),
-                IsActive = reader.GetBoolean(reader.GetOrdinal("IsActive")),
-                CreatedOn = reader.GetDateTime(reader.GetOrdinal("CreatedOn")),
-                CreatedBy = reader.IsDBNull(reader.GetOrdinal("CreatedBy"))
+                    : reader["Description"].ToString(),
+                IsActive = Convert.ToBoolean(reader["IsActive"]),
+                CreatedOn = Convert.ToDateTime(reader["CreatedOn"]),
+                CreatedBy = reader["CreatedBy"] == DBNull.Value
                     ? null
-                    : reader.GetInt64(reader.GetOrdinal("CreatedBy")),
-                ModifyOn = reader.IsDBNull(reader.GetOrdinal("ModifyOn"))
+                    : Convert.ToInt64(reader["CreatedBy"]),
+                ModifyOn = reader["ModifyOn"] == DBNull.Value
                     ? null
-                    : reader.GetDateTime(reader.GetOrdinal("ModifyOn")),
-                ModifyBy = reader.IsDBNull(reader.GetOrdinal("ModifyBy"))
+                    : Convert.ToDateTime(reader["ModifyOn"]),
+                ModifyBy = reader["ModifyBy"] == DBNull.Value
                     ? null
-                    : reader.GetInt64(reader.GetOrdinal("ModifyBy")),
-                TenantId = reader.GetInt64(reader.GetOrdinal("TenantId"))
+                    : Convert.ToInt64(reader["ModifyBy"]),
+                TenantId = Convert.ToInt64(reader["TenantId"]),
+                TenantName = reader["TenantName"].ToString() ?? string.Empty
             };
         }
     }

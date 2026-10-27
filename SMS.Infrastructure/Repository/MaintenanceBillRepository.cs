@@ -1,5 +1,7 @@
-﻿using Microsoft.Data.SqlClient;
+﻿
+using Microsoft.Data.SqlClient;
 using SMS.Domain;
+using System.Data;
 
 namespace SMS.Infrastructure
 {
@@ -7,7 +9,8 @@ namespace SMS.Infrastructure
     {
         private readonly DbConnectionFactory _connectionFactory;
 
-        public MaintenanceBillRepository(DbConnectionFactory connectionFactory)
+        public MaintenanceBillRepository(
+            DbConnectionFactory connectionFactory)
         {
             _connectionFactory = connectionFactory;
         }
@@ -19,52 +22,63 @@ namespace SMS.Infrastructure
             using var connection = _connectionFactory.CreateConnection();
             await connection.OpenAsync();
 
-            const string query = @"
-                SELECT BillId, FlatId, BillingMonth, BillingYear,
-                       BaseAmount, PenaltyAmount, TotalAmount, DueDate,
-                       PaymentStatus, PaymentDate, TransactionRef,
-                       Description, IsActive, CreatedOn, CreatedBy,
-                       ModifyOn, ModifyBy, TenantId
-                FROM MaintenanceBills
-                WHERE IsActive = 1
-                ORDER BY BillingYear DESC, BillingMonth DESC, BillId DESC";
+            using var command = new SqlCommand(
+                "dbo.GetAllMaintenanceBills", connection);
 
-            using var command = new SqlCommand(query, connection);
+            command.CommandType = CommandType.StoredProcedure;
+
             using var reader = await command.ExecuteReaderAsync();
 
             while (await reader.ReadAsync())
             {
-                bills.Add(MapBill(reader));
+                bills.Add(MapMaintenanceBill(reader));
             }
 
             return bills;
         }
 
-        public async Task<MaintenanceBill?> GetByIdAsync(long id)
+        public async Task<MaintenanceBill?> GetByIdAsync(long billId)
         {
             using var connection = _connectionFactory.CreateConnection();
             await connection.OpenAsync();
 
-            const string query = @"
-                SELECT BillId, FlatId, BillingMonth, BillingYear,
-                       BaseAmount, PenaltyAmount, TotalAmount, DueDate,
-                       PaymentStatus, PaymentDate, TransactionRef,
-                       Description, IsActive, CreatedOn, CreatedBy,
-                       ModifyOn, ModifyBy, TenantId
-                FROM MaintenanceBills
-                WHERE BillId = @BillId AND IsActive = 1";
+            using var command = new SqlCommand(
+                "dbo.GetMaintenanceBillById", connection);
 
-            using var command = new SqlCommand(query, connection);
-            command.Parameters.AddWithValue("@BillId", id);
+            command.CommandType = CommandType.StoredProcedure;
+            command.Parameters.Add("@BillId", SqlDbType.BigInt).Value = billId;
 
             using var reader = await command.ExecuteReaderAsync();
 
             if (await reader.ReadAsync())
             {
-                return MapBill(reader);
+                return MapMaintenanceBill(reader);
             }
 
             return null;
+        }
+
+        public async Task<List<MaintenanceBill>> GetByTenantAsync(long tenantId)
+        {
+            var bills = new List<MaintenanceBill>();
+
+            using var connection = _connectionFactory.CreateConnection();
+            await connection.OpenAsync();
+
+            using var command = new SqlCommand(
+                "dbo.GetMaintenanceBillsByTenant", connection);
+
+            command.CommandType = CommandType.StoredProcedure;
+            command.Parameters.Add("@TenantId", SqlDbType.BigInt).Value = tenantId;
+
+            using var reader = await command.ExecuteReaderAsync();
+
+            while (await reader.ReadAsync())
+            {
+                bills.Add(MapMaintenanceBill(reader));
+            }
+
+            return bills;
         }
 
         public async Task<long> CreateAsync(MaintenanceBill bill)
@@ -72,28 +86,44 @@ namespace SMS.Infrastructure
             using var connection = _connectionFactory.CreateConnection();
             await connection.OpenAsync();
 
-            const string query = @"
-                INSERT INTO MaintenanceBills
-                (
-                    FlatId, BillingMonth, BillingYear, BaseAmount,
-                    PenaltyAmount, TotalAmount, DueDate, PaymentStatus,
-                    PaymentDate, TransactionRef, Description, IsActive,
-                    CreatedOn, CreatedBy, ModifyOn, ModifyBy, TenantId
-                )
-                VALUES
-                (
-                    @FlatId, @BillingMonth, @BillingYear, @BaseAmount,
-                    @PenaltyAmount, @TotalAmount, @DueDate, @PaymentStatus,
-                    @PaymentDate, @TransactionRef, @Description, @IsActive,
-                    @CreatedOn, @CreatedBy, @ModifyOn, @ModifyBy, @TenantId
-                );
+            using var command = new SqlCommand(
+                "dbo.InsertMaintenanceBill", connection);
 
-                SELECT CAST(SCOPE_IDENTITY() AS BIGINT);";
+            command.CommandType = CommandType.StoredProcedure;
 
-            using var command = new SqlCommand(query, connection);
-            AddParameters(command, bill);
+            command.Parameters.Add("@FlatId", SqlDbType.BigInt).Value = bill.FlatId;
+            command.Parameters.Add("@BillingMonth", SqlDbType.Int).Value = bill.BillingMonth;
+            command.Parameters.Add("@BillingYear", SqlDbType.Int).Value = bill.BillingYear;
 
-            var result = await command.ExecuteScalarAsync();
+            command.Parameters.Add("@BaseAmount", SqlDbType.Decimal).Value = bill.BaseAmount;
+            command.Parameters["@BaseAmount"].Precision = 18;
+            command.Parameters["@BaseAmount"].Scale = 2;
+
+            command.Parameters.Add("@PenaltyAmount", SqlDbType.Decimal).Value = bill.PenaltyAmount;
+            command.Parameters["@PenaltyAmount"].Precision = 18;
+            command.Parameters["@PenaltyAmount"].Scale = 2;
+
+            command.Parameters.Add("@DueDate", SqlDbType.Date).Value = bill.DueDate.Date;
+
+            command.Parameters.Add("@PaymentStatus", SqlDbType.NVarChar, 20).Value =
+                bill.PaymentStatus;
+
+            command.Parameters.Add("@PaymentDate", SqlDbType.Date).Value =
+                (object?)bill.PaymentDate?.Date ?? DBNull.Value;
+
+            command.Parameters.Add("@TransactionRef", SqlDbType.NVarChar, 100).Value =
+                (object?)bill.TransactionRef ?? DBNull.Value;
+
+            command.Parameters.Add("@Description", SqlDbType.NVarChar, 500).Value =
+                (object?)bill.Description ?? DBNull.Value;
+
+            command.Parameters.Add("@CreatedBy", SqlDbType.BigInt).Value =
+                (object?)bill.CreatedBy ?? DBNull.Value;
+
+            command.Parameters.Add("@TenantId", SqlDbType.BigInt).Value = bill.TenantId;
+
+            object? result = await command.ExecuteScalarAsync();
+
             return Convert.ToInt64(result);
         }
 
@@ -102,118 +132,134 @@ namespace SMS.Infrastructure
             using var connection = _connectionFactory.CreateConnection();
             await connection.OpenAsync();
 
-            const string query = @"
-                UPDATE MaintenanceBills
-                SET FlatId = @FlatId,
-                    BillingMonth = @BillingMonth,
-                    BillingYear = @BillingYear,
-                    BaseAmount = @BaseAmount,
-                    PenaltyAmount = @PenaltyAmount,
-                    TotalAmount = @TotalAmount,
-                    DueDate = @DueDate,
-                    PaymentStatus = @PaymentStatus,
-                    PaymentDate = @PaymentDate,
-                    TransactionRef = @TransactionRef,
-                    Description = @Description,
-                    ModifyOn = @ModifyOn,
-                    ModifyBy = @ModifyBy,
-                    TenantId = @TenantId
-                WHERE BillId = @BillId AND IsActive = 1";
+            using var command = new SqlCommand(
+                "dbo.UpdateMaintenanceBill", connection);
 
-            using var command = new SqlCommand(query, connection);
-            AddParameters(command, bill);
-            command.Parameters.AddWithValue("@BillId", bill.BillId);
+            command.CommandType = CommandType.StoredProcedure;
 
-            return await command.ExecuteNonQueryAsync() > 0;
+            command.Parameters.Add("@BillId", SqlDbType.BigInt).Value = bill.BillId;
+            command.Parameters.Add("@FlatId", SqlDbType.BigInt).Value = bill.FlatId;
+            command.Parameters.Add("@BillingMonth", SqlDbType.Int).Value = bill.BillingMonth;
+            command.Parameters.Add("@BillingYear", SqlDbType.Int).Value = bill.BillingYear;
+
+            command.Parameters.Add("@BaseAmount", SqlDbType.Decimal).Value = bill.BaseAmount;
+            command.Parameters["@BaseAmount"].Precision = 18;
+            command.Parameters["@BaseAmount"].Scale = 2;
+
+            command.Parameters.Add("@PenaltyAmount", SqlDbType.Decimal).Value = bill.PenaltyAmount;
+            command.Parameters["@PenaltyAmount"].Precision = 18;
+            command.Parameters["@PenaltyAmount"].Scale = 2;
+
+            command.Parameters.Add("@DueDate", SqlDbType.Date).Value = bill.DueDate.Date;
+
+            command.Parameters.Add("@PaymentStatus", SqlDbType.NVarChar, 20).Value =
+                bill.PaymentStatus;
+
+            command.Parameters.Add("@PaymentDate", SqlDbType.Date).Value =
+                (object?)bill.PaymentDate?.Date ?? DBNull.Value;
+
+            command.Parameters.Add("@TransactionRef", SqlDbType.NVarChar, 100).Value =
+                (object?)bill.TransactionRef ?? DBNull.Value;
+
+            command.Parameters.Add("@Description", SqlDbType.NVarChar, 500).Value =
+                (object?)bill.Description ?? DBNull.Value;
+
+            command.Parameters.Add("@ModifyBy", SqlDbType.BigInt).Value =
+                (object?)bill.ModifyBy ?? DBNull.Value;
+
+            command.Parameters.Add("@TenantId", SqlDbType.BigInt).Value = bill.TenantId;
+
+            object? result = await command.ExecuteScalarAsync();
+
+            return Convert.ToInt32(result) > 0;
         }
 
-        public async Task<bool> DeleteAsync(long id)
+        public async Task<bool> DeleteAsync(
+            long billId,
+            long? modifyBy,
+            long tenantId)
         {
             using var connection = _connectionFactory.CreateConnection();
             await connection.OpenAsync();
 
-            const string query = @"
-                UPDATE MaintenanceBills
-                SET IsActive = 0,
-                    ModifyOn = @ModifyOn
-                WHERE BillId = @BillId AND IsActive = 1";
+            using var command = new SqlCommand(
+                "dbo.DeleteMaintenanceBill", connection);
 
-            using var command = new SqlCommand(query, connection);
-            command.Parameters.AddWithValue("@BillId", id);
-            command.Parameters.AddWithValue("@ModifyOn", DateTime.UtcNow);
+            command.CommandType = CommandType.StoredProcedure;
 
-            return await command.ExecuteNonQueryAsync() > 0;
+            command.Parameters.Add("@BillId", SqlDbType.BigInt).Value = billId;
+
+            command.Parameters.Add("@ModifyBy", SqlDbType.BigInt).Value =
+                (object?)modifyBy ?? DBNull.Value;
+
+            command.Parameters.Add("@TenantId", SqlDbType.BigInt).Value = tenantId;
+
+            object? result = await command.ExecuteScalarAsync();
+
+            return Convert.ToInt32(result) > 0;
         }
 
-        private static void AddParameters(
-            SqlCommand command,
-            MaintenanceBill bill)
+
+        public async Task<List<MaintenanceBill>> GetFlatsByTenantAsync(long tenantId)
         {
-            command.Parameters.AddWithValue("@FlatId", bill.FlatId);
-            command.Parameters.AddWithValue("@BillingMonth", bill.BillingMonth);
-            command.Parameters.AddWithValue("@BillingYear", bill.BillingYear);
-            command.Parameters.AddWithValue("@BaseAmount", bill.BaseAmount);
-            command.Parameters.AddWithValue("@PenaltyAmount", bill.PenaltyAmount);
-            command.Parameters.AddWithValue("@TotalAmount", bill.TotalAmount);
-            command.Parameters.AddWithValue("@DueDate", bill.DueDate.Date);
-            command.Parameters.AddWithValue("@PaymentStatus", bill.PaymentStatus);
-            command.Parameters.AddWithValue(
-                "@PaymentDate",
-                (object?)bill.PaymentDate?.Date ?? DBNull.Value);
-            command.Parameters.AddWithValue(
-                "@TransactionRef",
-                (object?)bill.TransactionRef ?? DBNull.Value);
-            command.Parameters.AddWithValue(
-                "@Description",
-                (object?)bill.Description ?? DBNull.Value);
-            command.Parameters.AddWithValue("@IsActive", bill.IsActive);
-            command.Parameters.AddWithValue("@CreatedOn", bill.CreatedOn);
-            command.Parameters.AddWithValue(
-                "@CreatedBy",
-                (object?)bill.CreatedBy ?? DBNull.Value);
-            command.Parameters.AddWithValue(
-                "@ModifyOn",
-                (object?)bill.ModifyOn ?? DBNull.Value);
-            command.Parameters.AddWithValue(
-                "@ModifyBy",
-                (object?)bill.ModifyBy ?? DBNull.Value);
-            command.Parameters.AddWithValue("@TenantId", bill.TenantId);
+            var flats = new List<MaintenanceBill>();
+
+            using var connection = _connectionFactory.CreateConnection();
+            await connection.OpenAsync();
+
+            using var command = new SqlCommand(
+                "dbo.GetMaintenanceBillFlatsByTenant", connection);
+
+            command.CommandType = CommandType.StoredProcedure;
+
+            command.Parameters.Add("@TenantId", SqlDbType.BigInt).Value = tenantId;
+
+            using var reader = await command.ExecuteReaderAsync();
+
+            while (await reader.ReadAsync())
+            {
+                flats.Add(new MaintenanceBill
+                {
+                    FlatId = Convert.ToInt64(reader["FlatId"]),
+                    FlatNumber = Convert.ToString(reader["FlatNumber"])
+                });
+            }
+
+            return flats;
         }
 
-        private static MaintenanceBill MapBill(SqlDataReader reader)
+        private static MaintenanceBill MapMaintenanceBill(SqlDataReader reader)
         {
             return new MaintenanceBill
             {
-                BillId = reader.GetInt64(reader.GetOrdinal("BillId")),
-                FlatId = reader.GetInt64(reader.GetOrdinal("FlatId")),
-                BillingMonth = reader.GetInt32(reader.GetOrdinal("BillingMonth")),
-                BillingYear = reader.GetInt32(reader.GetOrdinal("BillingYear")),
-                BaseAmount = reader.GetDecimal(reader.GetOrdinal("BaseAmount")),
-                PenaltyAmount = reader.GetDecimal(reader.GetOrdinal("PenaltyAmount")),
-                TotalAmount = reader.GetDecimal(reader.GetOrdinal("TotalAmount")),
-                DueDate = reader.GetDateTime(reader.GetOrdinal("DueDate")),
-                PaymentStatus = reader.GetString(reader.GetOrdinal("PaymentStatus")),
-                PaymentDate = reader.IsDBNull(reader.GetOrdinal("PaymentDate"))
-                    ? null
-                    : reader.GetDateTime(reader.GetOrdinal("PaymentDate")),
-                TransactionRef = reader.IsDBNull(reader.GetOrdinal("TransactionRef"))
-                    ? null
-                    : reader.GetString(reader.GetOrdinal("TransactionRef")),
-                Description = reader.IsDBNull(reader.GetOrdinal("Description"))
-                    ? null
-                    : reader.GetString(reader.GetOrdinal("Description")),
-                IsActive = reader.GetBoolean(reader.GetOrdinal("IsActive")),
-                CreatedOn = reader.GetDateTime(reader.GetOrdinal("CreatedOn")),
-                CreatedBy = reader.IsDBNull(reader.GetOrdinal("CreatedBy"))
-                    ? null
-                    : reader.GetInt64(reader.GetOrdinal("CreatedBy")),
-                ModifyOn = reader.IsDBNull(reader.GetOrdinal("ModifyOn"))
-                    ? null
-                    : reader.GetDateTime(reader.GetOrdinal("ModifyOn")),
-                ModifyBy = reader.IsDBNull(reader.GetOrdinal("ModifyBy"))
-                    ? null
-                    : reader.GetInt64(reader.GetOrdinal("ModifyBy")),
-                TenantId = reader.GetInt64(reader.GetOrdinal("TenantId"))
+                BillId = Convert.ToInt64(reader["BillId"]),
+                FlatId = Convert.ToInt64(reader["FlatId"]),
+                FlatNumber = reader["FlatNumber"] == DBNull.Value
+                    ? null : Convert.ToString(reader["FlatNumber"]),
+                BillingMonth = Convert.ToInt32(reader["BillingMonth"]),
+                BillingYear = Convert.ToInt32(reader["BillingYear"]),
+                BaseAmount = Convert.ToDecimal(reader["BaseAmount"]),
+                PenaltyAmount = Convert.ToDecimal(reader["PenaltyAmount"]),
+                TotalAmount = Convert.ToDecimal(reader["TotalAmount"]),
+                DueDate = Convert.ToDateTime(reader["DueDate"]),
+                PaymentStatus = Convert.ToString(reader["PaymentStatus"]) ?? "Pending",
+                PaymentDate = reader["PaymentDate"] == DBNull.Value
+                    ? null : Convert.ToDateTime(reader["PaymentDate"]),
+                TransactionRef = reader["TransactionRef"] == DBNull.Value
+                    ? null : Convert.ToString(reader["TransactionRef"]),
+                Description = reader["Description"] == DBNull.Value
+                    ? null : Convert.ToString(reader["Description"]),
+                IsActive = Convert.ToBoolean(reader["IsActive"]),
+                CreatedOn = Convert.ToDateTime(reader["CreatedOn"]),
+                CreatedBy = reader["CreatedBy"] == DBNull.Value
+                    ? null : Convert.ToInt64(reader["CreatedBy"]),
+                ModifyOn = reader["ModifyOn"] == DBNull.Value
+                    ? null : Convert.ToDateTime(reader["ModifyOn"]),
+                ModifyBy = reader["ModifyBy"] == DBNull.Value
+                    ? null : Convert.ToInt64(reader["ModifyBy"]),
+                TenantId = Convert.ToInt64(reader["TenantId"]),
+                TenantName = reader["TenantName"] == DBNull.Value
+                    ? null : Convert.ToString(reader["TenantName"])
             };
         }
     }

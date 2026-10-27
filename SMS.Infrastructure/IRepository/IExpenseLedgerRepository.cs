@@ -1,13 +1,25 @@
-﻿using SMS.Domain;
+﻿
+using SMS.Domain;
 
 namespace SMS.Infrastructure
 {
     public interface IExpenseLedgerRepository
     {
-        Task<IEnumerable<ExpenseLedger>> GetAllAsync();
+        Task<List<ExpenseLedger>> GetAllAsync();
+
         Task<ExpenseLedger?> GetByIdAsync(long ledgerId);
-        Task<long> CreateAsync(ExpenseLedger ledger);
-        Task<bool> UpdateAsync(ExpenseLedger ledger);
-        Task<bool> DeleteAsync(long ledgerId);
+
+        Task<List<ExpenseLedger>> GetByTenantAsync(long tenantId);
+
+        Task<List<ExpenseLedger>> GetAdminsByTenantAsync(long tenantId);
+
+        Task<long> CreateAsync(ExpenseLedger expenseLedger);
+
+        Task<bool> UpdateAsync(ExpenseLedger expenseLedger);
+
+        Task<bool> DeleteAsync(
+            long ledgerId,
+            long? modifyBy,
+            long tenantId);
     }
 }

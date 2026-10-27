@@ -1,39 +1,80 @@
 ﻿@model List<SMS.Application.StaffAttendanceDto>
 
-<h2>Staff Attendance</h2>
+@{
+    ViewData["Title"] = "Staff Attendance";
+}
 
-<p>
-    <a asp-action="Create" class="btn btn-primary">Add Attendance</a>
-</p>
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2>Staff Attendance</h2>
+        <a asp-action="Create" class="btn btn-primary">+ Add Attendance</a>
+    </div>
 
-<table class="table table-bordered table-striped">
-    <thead>
-        <tr>
-            <th>Staff Name</th>
-            <th>Staff Role</th>
-            <th>Flat ID</th>
-            <th>Check-In</th>
-            <th>Check-Out</th>
-            <th>Tenant ID</th>
-            <th>Actions</th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var item in Model)
-        {
-            <tr>
-                <td>@item.StaffName</td>
-                <td>@item.StaffRole</td>
-                <td>@item.FlatId</td>
-                <td>@item.CheckInTime.ToString("dd-MM-yyyy HH:mm")</td>
-                <td>@(item.CheckOutTime?.ToString("dd-MM-yyyy HH:mm") ?? "Not checked out")</td>
-                <td>@item.TenantId</td>
-                <td>
-                    <a asp-action="Details" asp-route-id="@item.AttendanceId">Details</a> |
-                    <a asp-action="Edit" asp-route-id="@item.AttendanceId">Edit</a> |
-                    <a asp-action="Delete" asp-route-id="@item.AttendanceId">Delete</a>
-                </td>
-            </tr>
-        }
-    </tbody>
-</table>
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success">
+            @TempData["SuccessMessage"]
+        </div>
+    }
+
+    <div class="table-responsive">
+        <table class="table table-bordered table-striped">
+            <thead class="table-dark">
+                <tr>
+                    <th>ID</th>
+                    <th>Staff Name</th>
+                    <th>Role</th>
+                    <th>Society</th>
+                    <th>Wing</th>
+                    <th>Flat</th>
+                    <th>Check In</th>
+                    <th>Check Out</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model != null && Model.Any())
+                {
+                    foreach (var item in Model)
+                    {
+                        <tr>
+                            <td>@item.AttendanceId</td>
+                            <td>@item.StaffName</td>
+                            <td>@item.StaffRole</td>
+                            <td>@item.TenantName</td>
+                            <td>@item.WingName</td>
+                            <td>@item.FlatNumber</td>
+                            <td>@item.CheckInTime.ToString("dd-MM-yyyy hh:mm tt")</td>
+                            <td>
+                                @(item.CheckOutTime.HasValue
+                                    ? item.CheckOutTime.Value.ToString("dd-MM-yyyy hh:mm tt")
+                                    : "Not checked out")
+                            </td>
+                            <td>
+                                <a asp-action="Details"
+                                   asp-route-id="@item.AttendanceId"
+                                   class="btn btn-info btn-sm">Details</a>
+
+                                <a asp-action="Edit"
+                                   asp-route-id="@item.AttendanceId"
+                                   class="btn btn-warning btn-sm">Edit</a>
+
+                                <a asp-action="Delete"
+                                   asp-route-id="@item.AttendanceId"
+                                   class="btn btn-danger btn-sm">Delete</a>
+                            </td>
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="9" class="text-center">
+                            No staff attendance records found.
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

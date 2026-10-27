@@ -1,0 +1,80 @@
+﻿@model IEnumerable<SMS.Application.NoticeDto>
+
+@{
+    ViewData["Title"] = "Notices";
+}
+
+<h2>Notices Management</h2>
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success">
+        @TempData["SuccessMessage"]
+    </div>
+}
+
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger">
+        @TempData["ErrorMessage"]
+    </div>
+}
+
+<p>
+    <a asp-controller="Notice"
+           asp-action="Create"
+           class="btn btn-primary">
+        Create New Notice
+    </a>
+</p>
+
+<table class="table table-bordered table-striped">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Title</th>
+            <th>Category</th>
+            <th>Publish Date</th>
+            <th>Published By Admin ID</th>
+            <th>Tenant</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        @if (Model != null && Model.Any())
+        {
+            foreach (var notice in Model)
+            {
+                <tr>
+                    <td>@notice.NoticeId</td>
+                    <td>@notice.Title</td>
+                    <td>@notice.Category</td>
+                    <td>@notice.PublishDate.ToString("dd-MM-yyyy HH:mm")</td>
+                    <td>@notice.PublishedByAdminId</td>
+                    <td>@notice.TenantName</td>
+                    <td>
+                        <a asp-action="Details"
+                           asp-route-id="@notice.NoticeId"
+                           class="btn btn-info btn-sm">Details</a>
+
+                        <a asp-action="Edit"
+                           asp-route-id="@notice.NoticeId"
+                           class="btn btn-warning btn-sm">Edit</a>
+
+                        <a asp-action="Delete"
+                           asp-route-id="@notice.NoticeId"
+                           class="btn btn-danger btn-sm">Delete</a>
+                    </td>
+                </tr>
+            }
+        }
+        else
+        {
+            <tr>
+                <td colspan="7" class="text-center">
+                    No notices found.
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

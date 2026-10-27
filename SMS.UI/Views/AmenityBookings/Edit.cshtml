@@ -1,63 +1,181 @@
 ﻿@model SMS.Application.AmenityBookingDto
 
-<h2>Edit Amenity Booking</h2>
+@{
+    ViewData["Title"] = "Edit Amenity Booking";
+}
 
-<form asp-action="Edit" asp-route-id="@Model.BookingId" method="post">
-    @Html.AntiForgeryToken()
+<div class="container mt-4">
+    <h2>Edit Amenity Booking</h2>
 
-    <input asp-for="BookingId" type="hidden" />
-    <input asp-for="TenantId" type="hidden" />
+    <form asp-action="Edit"
+          asp-route-id="@Model.BookingId"
+          method="post">
 
-    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+        @Html.AntiForgeryToken()
 
-    <div class="mb-3">
-        <label asp-for="AmenityId" class="form-label">Amenity</label>
-        <select asp-for="AmenityId" asp-items="ViewBag.Amenities" class="form-select">
-            <option value="">Select Amenity</option>
-        </select>
-        <span asp-validation-for="AmenityId" class="text-danger"></span>
-    </div>
+        <input type="hidden" asp-for="BookingId" />
 
-    <div class="mb-3">
-        <label asp-for="FlatId" class="form-label">Flat</label>
-        <select asp-for="FlatId" asp-items="ViewBag.Flats" class="form-select">
-            <option value="">Select Flat</option>
-        </select>
-        <span asp-validation-for="FlatId" class="text-danger"></span>
-    </div>
+        <div asp-validation-summary="ModelOnly"
+             class="text-danger mb-3"></div>
 
-    <div class="mb-3">
-        <label asp-for="SlotDate" class="form-label">Slot Date</label>
-        <input asp-for="SlotDate" type="date" asp-format="{0:yyyy-MM-dd}" class="form-control" required />
-        <span asp-validation-for="SlotDate" class="text-danger"></span>
-    </div>
+        <div class="mb-3">
+            <label asp-for="TenantId" class="form-label">Tenant</label>
+            <select asp-for="TenantId"
+                    asp-items="ViewBag.Tenants"
+                    class="form-select"
+                    id="TenantId">
+                <option value="">-- Select Tenant --</option>
+            </select>
+            <span asp-validation-for="TenantId"
+                  class="text-danger"></span>
+        </div>
 
-    <div class="mb-3">
-        <label asp-for="SlotTime" class="form-label">Slot Time</label>
-        <input asp-for="SlotTime" class="form-control" maxlength="20" required />
-        <span asp-validation-for="SlotTime" class="text-danger"></span>
-    </div>
+        <div class="mb-3">
+            <label asp-for="AmenityId" class="form-label">Amenity</label>
+            <select asp-for="AmenityId"
+                    asp-items="ViewBag.Amenities"
+                    class="form-select"
+                    id="AmenityId">
+                <option value="">-- Select Amenity --</option>
+            </select>
+            <span asp-validation-for="AmenityId"
+                  class="text-danger"></span>
+        </div>
 
-    <div class="mb-3">
-        <label asp-for="DepositPaid" class="form-label">Deposit Paid</label>
-        <input asp-for="DepositPaid" type="number" step="0.01" min="0" class="form-control" required />
-        <span asp-validation-for="DepositPaid" class="text-danger"></span>
-    </div>
+        <div class="mb-3">
+            <label asp-for="FlatId" class="form-label">Flat</label>
+            <select asp-for="FlatId"
+                    asp-items="ViewBag.Flats"
+                    class="form-select"
+                    id="FlatId">
+                <option value="">-- Select Flat --</option>
+            </select>
+            <span asp-validation-for="FlatId"
+                  class="text-danger"></span>
+        </div>
 
-    <div class="mb-3">
-        <label asp-for="Status" class="form-label">Status</label>
-        <select asp-for="Status" asp-items="ViewBag.Statuses" class="form-select">
-            <option value="">Select Status</option>
-        </select>
-        <span asp-validation-for="Status" class="text-danger"></span>
-    </div>
+        <div class="mb-3">
+            <label asp-for="SlotDate" class="form-label">Booking Date</label>
+            <input asp-for="SlotDate" type="date" class="form-control" />
+            <span asp-validation-for="SlotDate"
+                  class="text-danger"></span>
+        </div>
 
-    <div class="mb-3">
-        <label asp-for="Description" class="form-label"></label>
-        <textarea asp-for="Description" class="form-control" maxlength="500"></textarea>
-        <span asp-validation-for="Description" class="text-danger"></span>
-    </div>
+        <div class="mb-3">
+            <label asp-for="SlotTime" class="form-label">Time Slot</label>
+            <input asp-for="SlotTime" class="form-control" />
+            <span asp-validation-for="SlotTime"
+                  class="text-danger"></span>
+        </div>
 
-    <button type="submit" class="btn btn-primary">Update Booking</button>
-    <a asp-action="Index" class="btn btn-secondary">Back</a>
-</form>
+        <div class="mb-3">
+            <label asp-for="DepositPaid" class="form-label"></label>
+            <input asp-for="DepositPaid"
+                   type="number"
+                   min="0"
+                   step="0.01"
+                   class="form-control" />
+            <span asp-validation-for="DepositPaid"
+                  class="text-danger"></span>
+        </div>
+
+        <div class="mb-3">
+            <label asp-for="Status" class="form-label"></label>
+            <select asp-for="Status" class="form-select">
+                <option value="Booked">Booked</option>
+                <option value="Confirmed">Confirmed</option>
+                <option value="Cancelled">Cancelled</option>
+                <option value="Completed">Completed</option>
+            </select>
+            <span asp-validation-for="Status"
+                  class="text-danger"></span>
+        </div>
+
+        <div class="mb-3">
+            <label asp-for="Description" class="form-label"></label>
+            <textarea asp-for="Description"
+                      class="form-control"
+                      rows="3"></textarea>
+            <span asp-validation-for="Description"
+                  class="text-danger"></span>
+        </div>
+
+        <button type="submit" class="btn btn-primary">
+            Update Booking
+        </button>
+
+        <a asp-action="Index" class="btn btn-secondary">Cancel</a>
+    </form>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const tenant = document.getElementById("TenantId");
+            const amenity = document.getElementById("AmenityId");
+            const flat = document.getElementById("FlatId");
+
+            const selectedAmenity = "@Model.AmenityId";
+            const selectedFlat = "@Model.FlatId";
+
+            async function loadOptions(url, select, placeholder, selectedValue) {
+                select.replaceChildren(new Option(placeholder, ""));
+
+                const response = await fetch(url);
+
+                if (!response.ok) {
+                    throw new Error("Unable to load dropdown options.");
+                }
+
+                const items = await response.json();
+
+                items.forEach(item => {
+                    const option = new Option(item.text, item.id);
+                    select.add(option);
+                });
+
+                if (selectedValue) {
+                    select.value = selectedValue;
+                }
+            }
+
+            async function loadTenantOptions(keepSelection) {
+                amenity.replaceChildren(
+                    new Option("-- Select Amenity --", ""));
+                flat.replaceChildren(
+                    new Option("-- Select Flat --", ""));
+
+                if (!tenant.value) return;
+
+                try {
+                    await Promise.all([
+                        loadOptions(
+                            '@Url.Action("GetAmenitiesByTenant")'
+                                + '?tenantId=' + encodeURIComponent(tenant.value),
+                            amenity,
+                            "-- Select Amenity --",
+                            keepSelection ? selectedAmenity : ""
+                        ),
+                        loadOptions(
+                            '@Url.Action("GetFlatsByTenant")'
+                                + '?tenantId=' + encodeURIComponent(tenant.value),
+                            flat,
+                            "-- Select Flat --",
+                            keepSelection ? selectedFlat : ""
+                        )
+                    ]);
+                } catch (error) {
+                    alert(error.message);
+                }
+            }
+
+            tenant.addEventListener("change", function () {
+                loadTenantOptions(false);
+            });
+
+            loadTenantOptions(true);
+        });
+    </script>
+}

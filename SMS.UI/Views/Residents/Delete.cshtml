@@ -1,29 +1,39 @@
-﻿
-@model SMS.Application.ResidentDto
+﻿@model SMS.Application.ResidentDto
 
 @{
     ViewData["Title"] = "Delete Resident";
 }
 
-<h2>Deactivate Resident</h2>
+<h2>Delete Resident</h2>
 
-<p>Are you sure you want to deactivate this resident?</p>
+<div class="alert alert-warning">
+    Are you sure you want to deactivate this resident?
+</div>
 
 <dl class="row">
-    <dt class="col-sm-3">Resident ID</dt>
-    <dd class="col-sm-9">@Model.ResidentId</dd>
+    <dt class="col-sm-3">Name</dt>
+    <dd class="col-sm-9">@Model.FullName</dd>
 
-    <dt class="col-sm-3">User ID</dt>
-    <dd class="col-sm-9">@Model.UserId</dd>
+    <dt class="col-sm-3">Flat</dt>
+    <dd class="col-sm-9">@Model.FlatNumber</dd>
 
-    <dt class="col-sm-3">Flat ID</dt>
-    <dd class="col-sm-9">@Model.FlatId</dd>
+    <dt class="col-sm-3">Wing</dt>
+    <dd class="col-sm-9">@Model.WingName</dd>
 
     <dt class="col-sm-3">Resident Type</dt>
     <dd class="col-sm-9">@Model.ResidentType</dd>
 </dl>
 
-<form asp-action="Delete" asp-route-id="@Model.ResidentId" method="post">
-    <button type="submit" class="btn btn-danger">Deactivate</button>
-    <a asp-action="Index" class="btn btn-secondary">Cancel</a>
+<form asp-action="Delete"
+      asp-route-id="@Model.ResidentId"
+      method="post">
+    @Html.AntiForgeryToken()
+
+    <button type="submit" class="btn btn-danger">
+        Confirm Delete
+    </button>
+
+    <a asp-action="Index" class="btn btn-secondary">
+        Cancel
+    </a>
 </form>

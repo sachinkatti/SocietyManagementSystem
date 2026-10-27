@@ -6,25 +6,27 @@
 
 <h2>Visitor Logs</h2>
 
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success">
+        @TempData["SuccessMessage"]
+    </div>
+}
+
 <p>
     <a asp-action="Create" class="btn btn-primary">Add Visitor</a>
 </p>
-
-@if (TempData["SuccessMessage"] != null)
-{
-    <div class="alert alert-success">@TempData["SuccessMessage"]</div>
-}
 
 <div class="table-responsive">
     <table class="table table-bordered table-striped">
         <thead>
             <tr>
-                <th>Visitor</th>
+                <th>ID</th>
+                <th>Visitor Name</th>
                 <th>Phone</th>
-                <th>Flat</th>
+                <th>Flat ID</th>
                 <th>Purpose</th>
-                <th>Vehicle</th>
-                <th>Approval Method</th>
+                <th>Approval</th>
                 <th>Entry Time</th>
                 <th>Exit Time</th>
                 <th>Guard</th>
@@ -32,22 +34,43 @@
             </tr>
         </thead>
         <tbody>
-            @foreach (var item in Model)
+            @if (Model != null && Model.Any())
+            {
+                foreach (var item in Model)
+                {
+                    <tr>
+                        <td>@item.VisitorId</td>
+                        <td>@item.VisitorName</td>
+                        <td>@item.PhoneNumber</td>
+                        <td>@item.FlatNumber (@item.WingName)</td>
+                        <td>@item.Purpose</td>
+                        <td>@item.ApprovalMethod</td>
+                        <td>@item.EntryTime.ToString("dd-MM-yyyy hh:mm tt")</td>
+                        <td>
+                            @(item.ExitTime?.ToString("dd-MM-yyyy hh:mm tt") ?? "Not exited")
+                        </td>
+                        <td>@item.GuardName</td>
+                        <td>
+                            <a asp-action="Details"
+                               asp-route-id="@item.VisitorId"
+                               class="btn btn-info btn-sm">Details</a>
+
+                            <a asp-action="Edit"
+                               asp-route-id="@item.VisitorId"
+                               class="btn btn-warning btn-sm">Edit</a>
+
+                            <a asp-action="Delete"
+                               asp-route-id="@item.VisitorId"
+                               class="btn btn-danger btn-sm">Delete</a>
+                        </td>
+                    </tr>
+                }
+            }
+            else
             {
                 <tr>
-                    <td>@item.VisitorName</td>
-                    <td>@item.PhoneNumber</td>
-                    <td>@item.FlatNumber</td>
-                    <td>@item.Purpose</td>
-                    <td>@item.VehicleNumber</td>
-                    <td>@item.ApprovalMethod</td>
-                    <td>@item.EntryTime.ToString("dd-MM-yyyy HH:mm")</td>
-                    <td>@(item.ExitTime?.ToString("dd-MM-yyyy HH:mm") ?? "-")</td>
-                    <td>@item.GuardName</td>
-                    <td>
-                        <a asp-action="Details" asp-route-id="@item.VisitorId">Details</a> |
-                        <a asp-action="Edit" asp-route-id="@item.VisitorId">Edit</a> |
-                        <a asp-action="Delete" asp-route-id="@item.VisitorId">Delete</a>
+                    <td colspan="10" class="text-center">
+                        No visitor logs found.
                     </td>
                 </tr>
             }

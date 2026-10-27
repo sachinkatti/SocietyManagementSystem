@@ -8,34 +8,19 @@ namespace SMS.UI.Controllers
     public class AmenityBookingsController : Controller
     {
         private readonly IAmenityBookingService _bookingService;
-        private readonly IAmenityService _amenityService;
-        private readonly IFlatService _flatService;
+        private readonly ITenantService _tenantService;
 
         public AmenityBookingsController(
             IAmenityBookingService bookingService,
-            IAmenityService amenityService,
-            IFlatService flatService)
+            ITenantService tenantService)
         {
             _bookingService = bookingService;
-            _amenityService = amenityService;
-            _flatService = flatService;
+            _tenantService = tenantService;
         }
 
         public async Task<IActionResult> Index()
         {
-            var bookings = (await _bookingService.GetAllAsync()).ToList();
-            var amenities = (await _amenityService.GetAllAsync()).ToDictionary(x => x.AmenityId);
-            var flats = (await _flatService.GetAllAsync()).ToDictionary(x => x.FlatId);
-
-            foreach (var booking in bookings)
-            {
-                if (amenities.TryGetValue(booking.AmenityId, out var amenity))
-                    booking.AmenityName = amenity.Name;
-
-                if (flats.TryGetValue(booking.FlatId, out var flat))
-                    booking.FlatNumber = flat.FlatNumber;
-            }
-
+            var bookings = await _bookingService.GetAllAsync();
             return View(bookings);
         }
 
@@ -46,43 +31,51 @@ namespace SMS.UI.Controllers
             if (booking == null)
                 return NotFound();
 
-            await LoadDropdownsAsync(booking.AmenityId, booking.FlatId);
-            await SetDisplayNamesAsync(booking);
-
             return View(booking);
         }
 
-        [HttpGet]
         public async Task<IActionResult> Create()
         {
-            await LoadDropdownsAsync();
+            await LoadTenantsAsync();
 
             return View(new AmenityBookingDto
             {
                 SlotDate = DateTime.Today,
-                Status = "Pending"
+                Status = "Booked"
             });
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(AmenityBookingDto dto)
+        public async Task<IActionResult> Create(AmenityBookingDto booking)
         {
-            ValidateBooking(dto);
-
             if (!ModelState.IsValid)
             {
-                await LoadDropdownsAsync(dto.AmenityId, dto.FlatId);
-                return View(dto);
+                await LoadTenantsAsync();
+                await LoadBookingOptionsAsync(booking.TenantId, booking);
+                return View(booking);
             }
 
-            await _bookingService.CreateAsync(dto);
+            try
+            {
+                await _bookingService.CreateAsync(booking);
 
-            TempData["Success"] = "Amenity booking created successfully.";
-            return RedirectToAction(nameof(Index));
+                TempData["SuccessMessage"] =
+                    "Amenity booking created successfully.";
+
+                return RedirectToAction(nameof(Index));
+            }
+            catch (Microsoft.Data.SqlClient.SqlException ex)
+            {
+                ModelState.AddModelError(string.Empty, ex.Message);
+
+                await LoadTenantsAsync();
+                await LoadBookingOptionsAsync(booking.TenantId, booking);
+
+                return View(booking);
+            }
         }
 
-        [HttpGet]
         public async Task<IActionResult> Edit(long id)
         {
             var booking = await _bookingService.GetByIdAsync(id);
@@ -90,44 +83,56 @@ namespace SMS.UI.Controllers
             if (booking == null)
                 return NotFound();
 
-            await LoadDropdownsAsync(booking.AmenityId, booking.FlatId);
+            await LoadTenantsAsync();
+            await LoadBookingOptionsAsync(booking.TenantId, booking);
 
             return View(booking);
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(long id, AmenityBookingDto dto)
+        public async Task<IActionResult> Edit(
+            long id, AmenityBookingDto booking)
         {
-            if (id != dto.BookingId)
+            if (id != booking.BookingId)
                 return BadRequest();
-
-            ValidateBooking(dto);
 
             if (!ModelState.IsValid)
             {
-                await LoadDropdownsAsync(dto.AmenityId, dto.FlatId);
-                return View(dto);
+                await LoadTenantsAsync();
+                await LoadBookingOptionsAsync(booking.TenantId, booking);
+                return View(booking);
             }
 
-            var updated = await _bookingService.UpdateAsync(dto);
+            try
+            {
+                var updated = await _bookingService.UpdateAsync(booking);
 
-            if (!updated)
-                return NotFound();
+                if (!updated)
+                    return NotFound();
 
-            TempData["Success"] = "Amenity booking updated successfully.";
-            return RedirectToAction(nameof(Index));
+                TempData["SuccessMessage"] =
+                    "Amenity booking updated successfully.";
+
+                return RedirectToAction(nameof(Index));
+            }
+            catch (Microsoft.Data.SqlClient.SqlException ex)
+            {
+                ModelState.AddModelError(string.Empty, ex.Message);
+
+                await LoadTenantsAsync();
+                await LoadBookingOptionsAsync(booking.TenantId, booking);
+
+                return View(booking);
+            }
         }
 
-        [HttpGet]
         public async Task<IActionResult> Delete(long id)
         {
             var booking = await _bookingService.GetByIdAsync(id);
 
             if (booking == null)
                 return NotFound();
-
-            await SetDisplayNamesAsync(booking);
 
             return View(booking);
         }
@@ -141,63 +146,79 @@ namespace SMS.UI.Controllers
             if (!deleted)
                 return NotFound();
 
-            TempData["Success"] = "Amenity booking deactivated successfully.";
+            TempData["SuccessMessage"] =
+                "Amenity booking deleted successfully.";
+
             return RedirectToAction(nameof(Index));
         }
 
-        private async Task LoadDropdownsAsync(long? selectedAmenityId = null, long? selectedFlatId = null)
+        [HttpGet]
+        public async Task<IActionResult> GetAmenitiesByTenant(long tenantId)
         {
-            var amenities = await _amenityService.GetAllAsync();
-            var flats = await _flatService.GetAllAsync();
+            if (tenantId <= 0)
+                return Json(Array.Empty<object>());
+
+            var amenities =
+                await _bookingService.GetAmenitiesByTenantAsync(tenantId);
+
+            return Json(amenities.Select(a => new
+            {
+                id = a.AmenityId,
+                text = a.AmenityName
+            }));
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetFlatsByTenant(long tenantId)
+        {
+            if (tenantId <= 0)
+                return Json(Array.Empty<object>());
+
+            var flats =
+                await _bookingService.GetFlatsByTenantAsync(tenantId);
+
+            return Json(flats.Select(f => new
+            {
+                id = f.FlatId,
+                text = $"{f.FlatNumber} - {f.WingName}"
+            }));
+        }
+
+        private async Task LoadTenantsAsync()
+        {
+            var tenants = await _tenantService.GetAllAsync();
+
+            ViewBag.Tenants = new SelectList(
+                tenants.Where(t => t.IsActive),
+                "TenantId",
+                "TenantName");
+        }
+
+        private async Task LoadBookingOptionsAsync(
+            long tenantId, AmenityBookingDto booking)
+        {
+            var amenities = tenantId > 0
+                ? await _bookingService.GetAmenitiesByTenantAsync(tenantId)
+                : Enumerable.Empty<
+                    SMS.Infrastructure.AmenityBookingAmenityOption>();
+
+            var flats = tenantId > 0
+                ? await _bookingService.GetFlatsByTenantAsync(tenantId)
+                : Enumerable.Empty<
+                    SMS.Infrastructure.AmenityBookingFlatOption>();
 
             ViewBag.Amenities = new SelectList(
-                amenities,
-                "AmenityId",
-                "Name",
-                selectedAmenityId);
+                amenities, "AmenityId", "AmenityName", booking.AmenityId);
 
             ViewBag.Flats = new SelectList(
-                flats,
+                flats.Select(f => new
+                {
+                    f.FlatId,
+                    FlatDisplay = $"{f.FlatNumber} - {f.WingName}"
+                }),
                 "FlatId",
-                "FlatNumber",
-                selectedFlatId);
-
-            ViewBag.Statuses = new SelectList(
-                new[] { "Pending", "Confirmed", "Completed", "Cancelled" });
-        }
-
-        private async Task SetDisplayNamesAsync(AmenityBookingDto booking)
-        {
-            var amenity = await _amenityService.GetByIdAsync(booking.AmenityId);
-            var flat = (await _flatService.GetAllAsync())
-                .FirstOrDefault(x => x.FlatId == booking.FlatId);
-
-            booking.AmenityName = amenity?.Name;
-            booking.FlatNumber = flat?.FlatNumber;
-        }
-
-        private void ValidateBooking(AmenityBookingDto dto)
-        {
-            if (dto.AmenityId <= 0)
-                ModelState.AddModelError(nameof(dto.AmenityId), "Select an amenity.");
-
-            if (dto.FlatId <= 0)
-                ModelState.AddModelError(nameof(dto.FlatId), "Select a flat.");
-
-            if (dto.SlotDate == default)
-                ModelState.AddModelError(nameof(dto.SlotDate), "Select a booking date.");
-
-            if (string.IsNullOrWhiteSpace(dto.SlotTime) || dto.SlotTime.Trim().Length > 20)
-                ModelState.AddModelError(nameof(dto.SlotTime), "Enter a slot time of up to 20 characters.");
-
-            if (dto.DepositPaid < 0)
-                ModelState.AddModelError(nameof(dto.DepositPaid), "Deposit cannot be negative.");
-
-            if (string.IsNullOrWhiteSpace(dto.Status) || dto.Status.Trim().Length > 20)
-                ModelState.AddModelError(nameof(dto.Status), "Select a valid status.");
-
-            if (dto.TenantId <= 0)
-                ModelState.AddModelError(nameof(dto.TenantId), "Enter a valid Tenant ID.");
+                "FlatDisplay",
+                booking.FlatId);
         }
     }
 }

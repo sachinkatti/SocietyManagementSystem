@@ -1,0 +1,101 @@
+﻿@model IEnumerable<SMS.Application.TenantSubscriptionDto>
+
+@{
+    ViewData["Title"] = "Tenant Subscriptions";
+}
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2>Tenant Subscriptions</h2>
+        <a asp-action="Create" class="btn btn-primary">+ Add Subscription</a>
+    </div>
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success">
+            @TempData["SuccessMessage"]
+        </div>
+    }
+
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger">
+            @TempData["ErrorMessage"]
+        </div>
+    }
+
+    <div class="table-responsive">
+        <table class="table table-bordered table-striped align-middle">
+            <thead class="table-dark">
+                <tr>
+                    <th>ID</th>
+                    <th>Tenant</th>
+                    <th>Plan</th>
+                    <th>Start Date</th>
+                    <th>End Date</th>
+                    <th>Status</th>
+                    <th>Amount Paid</th>
+                    <th>Payment Reference</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model != null && Model.Any())
+                {
+                    foreach (var item in Model)
+                    {
+                        <tr>
+                            <td>@item.SubscriptionId</td>
+                            <td>
+                                @(string.IsNullOrWhiteSpace(item.TenantName)
+                                    ? $"Tenant ID: {item.TenantId}"
+                                    : item.TenantName)
+                            </td>
+                            <td>
+                                @(string.IsNullOrWhiteSpace(item.PlanName)
+                                    ? $"Plan ID: {item.PlanId}"
+                                    : item.PlanName)
+                            </td>
+                            <td>@item.StartDate.ToString("dd-MMM-yyyy")</td>
+                            <td>@item.EndDate.ToString("dd-MMM-yyyy")</td>
+                            <td>
+                                <span class="badge @(item.Status == "Active" ? "bg-success" : "bg-secondary")">
+                                    @item.Status
+                                </span>
+                            </td>
+                            <td>@item.AmountPaid.ToString("N2")</td>
+                            <td>@(item.PaymentReference ?? "-")</td>
+                            <td>
+                                <div class="d-flex gap-2">
+                                    <a asp-action="Edit"
+                                           asp-route-id="@item.SubscriptionId"
+                                           class="btn btn-sm btn-warning">
+                                        Edit
+                                    </a>
+
+                                    <form asp-action="Delete"
+                                          asp-route-id="@item.SubscriptionId"
+                                          method="post"
+                                          onsubmit="return confirm('Are you sure you want to delete this subscription?');">
+                                        @Html.AntiForgeryToken()
+                                        <button type="submit" class="btn btn-sm btn-danger">
+                                            Delete
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="9" class="text-center">
+                            No subscriptions found.
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

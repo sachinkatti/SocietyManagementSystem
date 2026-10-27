@@ -1,17 +1,49 @@
 ﻿@model SMS.Application.VehicleRegistryDto
 
-<h2>Vehicle Details</h2>
+@{
+    ViewData["Title"] = "Vehicle Details";
+}
 
-<dl class="row">
-    <dt class="col-sm-3">Flat</dt>
-    <dd class="col-sm-9">@Model.FlatNumber</dd>
-    <dt class="col-sm-3">Vehicle Number</dt>
-    <dd class="col-sm-9">@Model.VehicleNumber</dd>
-    <dt class="col-sm-3">Vehicle Type</dt>
-    <dd class="col-sm-9">@Model.VehicleType</dd>
-    <dt class="col-sm-3">Description</dt>
-    <dd class="col-sm-9">@Model.Description</dd>
-</dl>
+<div class="container py-4" style="max-width:850px;">
+    <h2 class="fw-bold mb-1">Vehicle Details</h2>
+    <p class="text-muted mb-4">View registered vehicle information.</p>
 
-<a asp-action="Index" class="btn btn-secondary">Back</a>
-<a asp-action="Edit" asp-route-id="@Model.VehicleId" class="btn btn-primary">Edit</a>
+    <div class="card border-0 shadow-sm">
+        <div class="card-body p-4">
+            <dl class="row mb-0">
+                <dt class="col-sm-4 mb-3">Vehicle ID</dt>
+                <dd class="col-sm-8 mb-3">@Model.VehicleId</dd>
+
+                <dt class="col-sm-4 mb-3">Vehicle Number</dt>
+                <dd class="col-sm-8 mb-3 fw-bold">@Model.VehicleNumber</dd>
+
+                <dt class="col-sm-4 mb-3">Vehicle Type</dt>
+                <dd class="col-sm-8 mb-3">@Model.VehicleType</dd>
+
+                <dt class="col-sm-4 mb-3">Tenant</dt>
+                <dd class="col-sm-8 mb-3">@Model.TenantName</dd>
+
+                <dt class="col-sm-4 mb-3">Wing</dt>
+                <dd class="col-sm-8 mb-3">@Model.WingName</dd>
+
+                <dt class="col-sm-4 mb-3">Flat Number</dt>
+                <dd class="col-sm-8 mb-3">@Model.FlatNumber</dd>
+
+                <dt class="col-sm-4 mb-3">Description</dt>
+                <dd class="col-sm-8 mb-3">
+                    @(string.IsNullOrWhiteSpace(Model.Description)
+                        ? "-"
+                        : Model.Description)
+                </dd>
+
+                <dt class="col-sm-4 mb-3">Created On</dt>
+                <dd class="col-sm-8 mb-3">@Model.CreatedOn.ToString("dd MMM yyyy, hh:mm tt")</dd>
+            </dl>
+
+            <hr />
+            <a asp-action="Edit" asp-route-id="@Model.VehicleId"
+               class="btn btn-primary">Edit Vehicle</a>
+            <a asp-action="Index" class="btn btn-outline-secondary">Back</a>
+        </div>
+    </div>
+</div>

@@ -7,7 +7,8 @@ namespace SMS.Application
     {
         private readonly IMaintenanceBillRepository _repository;
 
-        public MaintenanceBillService(IMaintenanceBillRepository repository)
+        public MaintenanceBillService(
+            IMaintenanceBillRepository repository)
         {
             _repository = repository;
         }
@@ -15,85 +16,70 @@ namespace SMS.Application
         public async Task<List<MaintenanceBillDto>> GetAllAsync()
         {
             var bills = await _repository.GetAllAsync();
+
             return bills.Select(MapToDto).ToList();
         }
 
-        public async Task<MaintenanceBillDto?> GetByIdAsync(long id)
+        public async Task<MaintenanceBillDto?> GetByIdAsync(long billId)
         {
-            var bill = await _repository.GetByIdAsync(id);
+            var bill = await _repository.GetByIdAsync(billId);
+
             return bill == null ? null : MapToDto(bill);
         }
 
-        public async Task<long> CreateAsync(MaintenanceBillDto dto)
+        public async Task<List<MaintenanceBillDto>> GetByTenantAsync(
+            long tenantId)
         {
-            var bill = new MaintenanceBill
-            {
-                FlatId = dto.FlatId,
-                BillingMonth = dto.BillingMonth,
-                BillingYear = dto.BillingYear,
-                BaseAmount = dto.BaseAmount,
-                PenaltyAmount = dto.PenaltyAmount,
-                TotalAmount = dto.BaseAmount + dto.PenaltyAmount,
-                DueDate = dto.DueDate.Date,
-                PaymentStatus = dto.PaymentStatus.Trim(),
-                PaymentDate = dto.PaymentDate?.Date,
-                TransactionRef = Normalize(dto.TransactionRef),
-                Description = Normalize(dto.Description),
-                IsActive = true,
-                CreatedOn = DateTime.UtcNow,
-                CreatedBy = dto.CreatedBy,
-                TenantId = dto.TenantId
-            };
+            var bills = await _repository.GetByTenantAsync(tenantId);
+
+            return bills.Select(MapToDto).ToList();
+        }
+
+        public async Task<long> CreateAsync(
+            MaintenanceBillDto dto,
+            long? createdBy)
+        {
+            var bill = MapToEntity(dto);
+
+            bill.CreatedBy = createdBy;
 
             return await _repository.CreateAsync(bill);
         }
 
-        public async Task<bool> UpdateAsync(MaintenanceBillDto dto)
+        public async Task<bool> UpdateAsync(
+            MaintenanceBillDto dto,
+            long? modifyBy)
         {
-            var bill = new MaintenanceBill
-            {
-                BillId = dto.BillId,
-                FlatId = dto.FlatId,
-                BillingMonth = dto.BillingMonth,
-                BillingYear = dto.BillingYear,
-                BaseAmount = dto.BaseAmount,
-                PenaltyAmount = dto.PenaltyAmount,
-                TotalAmount = dto.BaseAmount + dto.PenaltyAmount,
-                DueDate = dto.DueDate.Date,
-                PaymentStatus = dto.PaymentStatus.Trim(),
-                PaymentDate = dto.PaymentDate?.Date,
-                TransactionRef = Normalize(dto.TransactionRef),
-                Description = Normalize(dto.Description),
-                IsActive = true,
-                ModifyOn = DateTime.UtcNow,
-                ModifyBy = dto.ModifyBy,
-                TenantId = dto.TenantId
-            };
+            var bill = MapToEntity(dto);
+
+            bill.ModifyBy = modifyBy;
 
             return await _repository.UpdateAsync(bill);
         }
 
-        public Task<bool> DeleteAsync(long id)
+        public async Task<bool> DeleteAsync(
+            long billId,
+            long? modifyBy,
+            long tenantId)
         {
-            return _repository.DeleteAsync(id);
+            return await _repository.DeleteAsync(
+                billId,
+                modifyBy,
+                tenantId);
         }
 
-        private static string? Normalize(string? value)
-        {
-            return string.IsNullOrWhiteSpace(value) ? null : value.Trim();
-        }
-
-        private static MaintenanceBillDto MapToDto(MaintenanceBill bill)
+        private static MaintenanceBillDto MapToDto(
+            MaintenanceBill bill)
         {
             return new MaintenanceBillDto
             {
                 BillId = bill.BillId,
                 FlatId = bill.FlatId,
+                FlatNumber = bill.FlatNumber,
                 BillingMonth = bill.BillingMonth,
                 BillingYear = bill.BillingYear,
                 BaseAmount = bill.BaseAmount,
                 PenaltyAmount = bill.PenaltyAmount,
-                TotalAmount = bill.TotalAmount,
                 DueDate = bill.DueDate,
                 PaymentStatus = bill.PaymentStatus,
                 PaymentDate = bill.PaymentDate,
@@ -104,7 +90,41 @@ namespace SMS.Application
                 CreatedBy = bill.CreatedBy,
                 ModifyOn = bill.ModifyOn,
                 ModifyBy = bill.ModifyBy,
-                TenantId = bill.TenantId
+                TenantId = bill.TenantId,
+                TenantName = bill.TenantName
+            };
+        }
+
+        public async Task<List<MaintenanceBillDto>> GetFlatsByTenantAsync(long tenantId)
+        {
+            var flats = await _repository.GetFlatsByTenantAsync(tenantId);
+
+            return flats.Select(flat => new MaintenanceBillDto
+            {
+                FlatId = flat.FlatId,
+                FlatNumber = flat.FlatNumber
+            }).ToList();
+        }
+
+
+        private static MaintenanceBill MapToEntity(
+            MaintenanceBillDto dto)
+        {
+            return new MaintenanceBill
+            {
+                BillId = dto.BillId,
+                FlatId = dto.FlatId,
+                BillingMonth = dto.BillingMonth,
+                BillingYear = dto.BillingYear,
+                BaseAmount = dto.BaseAmount,
+                PenaltyAmount = dto.PenaltyAmount,
+                TotalAmount = dto.BaseAmount + dto.PenaltyAmount,
+                DueDate = dto.DueDate,
+                PaymentStatus = dto.PaymentStatus,
+                PaymentDate = dto.PaymentDate,
+                TransactionRef = dto.TransactionRef,
+                Description = dto.Description,
+                TenantId = dto.TenantId
             };
         }
     }

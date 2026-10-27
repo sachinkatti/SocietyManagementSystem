@@ -1,169 +1,215 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.Data.SqlClient;
 using SMS.Application;
+using System.Security.Claims;
 
 namespace SMS.UI.Controllers
 {
     public class ExpenseLedgerController : Controller
     {
-        private readonly IExpenseLedgerService _service;
+        private readonly IExpenseLedgerService _expenseLedgerService;
 
-        public ExpenseLedgerController(IExpenseLedgerService service)
+        public ExpenseLedgerController(
+            IExpenseLedgerService expenseLedgerService)
         {
-            _service = service;
+            _expenseLedgerService = expenseLedgerService;
         }
 
+        private long? GetUserId()
+        {
+            var userId = User.FindFirst(
+                ClaimTypes.NameIdentifier)?.Value;
+
+            return long.TryParse(userId, out var id) ? id : null;
+        }
+
+        private long? GetTenantId()
+        {
+            var tenantId = User.FindFirst("TenantId")?.Value;
+
+            return long.TryParse(tenantId, out var id) ? id : null;
+        }
+
+        // GET: ExpenseLedger
         public async Task<IActionResult> Index()
         {
-            var ledgers = await _service.GetAllAsync();
-            return View(ledgers);
+            var tenantId = GetTenantId();
+
+            if (tenantId == null)
+                return RedirectToAction("Login", "Account");
+
+            var entries = await _expenseLedgerService
+                .GetByTenantAsync(tenantId.Value);
+
+            return View(entries);
         }
 
+        // GET: ExpenseLedger/Details/1
         public async Task<IActionResult> Details(long id)
         {
-            var ledger = await _service.GetByIdAsync(id);
+            var tenantId = GetTenantId();
 
-            if (ledger == null)
-            {
+            if (tenantId == null)
+                return RedirectToAction("Login", "Account");
+
+            var dto = await _expenseLedgerService.GetByIdAsync(id);
+
+            if (dto == null || dto.TenantId != tenantId.Value)
                 return NotFound();
-            }
 
-            return View(ledger);
+            return View(dto);
         }
 
-        [HttpGet]
-        public IActionResult Create()
+        // GET: ExpenseLedger/Create
+        public async Task<IActionResult> Create()
         {
-            return View(new ExpenseLedgerDto
+            var tenantId = GetTenantId();
+
+            if (tenantId == null)
+                return RedirectToAction("Login", "Account");
+
+            await LoadAdminsAsync(tenantId.Value);
+
+            var dto = new ExpenseLedgerDto
             {
+                TenantId = tenantId.Value,
+                EntryType = "Expense",
                 EntryDate = DateTime.Today
-            });
+            };
+
+            return View(dto);
         }
 
+        // POST: ExpenseLedger/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(ExpenseLedgerDto dto)
         {
-            ValidateLedger(dto);
+            var tenantId = GetTenantId();
+
+            if (tenantId == null)
+                return RedirectToAction("Login", "Account");
+
+            dto.TenantId = tenantId.Value;
 
             if (!ModelState.IsValid)
             {
+                await LoadAdminsAsync(tenantId.Value);
                 return View(dto);
             }
 
-            await _service.CreateAsync(dto);
+            try
+            {
+                var ledgerId = await _expenseLedgerService.CreateAsync(
+                    dto, GetUserId());
 
-            return RedirectToAction(nameof(Index));
+                TempData["SuccessMessage"] =
+                    $"Expense ledger entry created successfully. ID: {ledgerId}";
+
+                return RedirectToAction(nameof(Index));
+            }
+            catch (SqlException ex)
+            {
+                ModelState.AddModelError(string.Empty, ex.Message);
+                await LoadAdminsAsync(tenantId.Value);
+                return View(dto);
+            }
         }
 
-        [HttpGet]
+        // GET: ExpenseLedger/Edit/1
         public async Task<IActionResult> Edit(long id)
         {
-            var ledger = await _service.GetByIdAsync(id);
+            var tenantId = GetTenantId();
 
-            if (ledger == null)
-            {
+            if (tenantId == null)
+                return RedirectToAction("Login", "Account");
+
+            var dto = await _expenseLedgerService.GetByIdAsync(id);
+
+            if (dto == null || dto.TenantId != tenantId.Value)
                 return NotFound();
-            }
 
-            return View(ledger);
+            await LoadAdminsAsync(tenantId.Value);
+
+            return View(dto);
         }
 
+        // POST: ExpenseLedger/Edit/1
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(long id, ExpenseLedgerDto dto)
+        public async Task<IActionResult> Edit(
+            long id, ExpenseLedgerDto dto)
         {
-            if (id != dto.LedgerId)
-            {
-                return BadRequest();
-            }
+            var tenantId = GetTenantId();
 
-            ValidateLedger(dto);
+            if (tenantId == null)
+                return RedirectToAction("Login", "Account");
+
+            if (id != dto.LedgerId)
+                return BadRequest();
+
+            dto.TenantId = tenantId.Value;
 
             if (!ModelState.IsValid)
             {
+                await LoadAdminsAsync(tenantId.Value);
                 return View(dto);
             }
 
-            var updated = await _service.UpdateAsync(dto);
-
-            if (!updated)
+            try
             {
-                return NotFound();
-            }
+                var updated = await _expenseLedgerService.UpdateAsync(
+                    dto, GetUserId());
 
-            return RedirectToAction(nameof(Index));
+                if (!updated)
+                    return NotFound();
+
+                TempData["SuccessMessage"] =
+                    "Expense ledger entry updated successfully.";
+
+                return RedirectToAction(nameof(Index));
+            }
+            catch (SqlException ex)
+            {
+                ModelState.AddModelError(string.Empty, ex.Message);
+                await LoadAdminsAsync(tenantId.Value);
+                return View(dto);
+            }
         }
 
-        [HttpGet]
+        // POST: ExpenseLedger/Delete/1
+        [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Delete(long id)
         {
-            var ledger = await _service.GetByIdAsync(id);
+            var tenantId = GetTenantId();
 
-            if (ledger == null)
-            {
-                return NotFound();
-            }
+            if (tenantId == null)
+                return RedirectToAction("Login", "Account");
 
-            return View(ledger);
-        }
+            var deleted = await _expenseLedgerService.DeleteAsync(
+                id, GetUserId(), tenantId.Value);
 
-        [HttpPost, ActionName("Delete")]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteConfirmed(long id)
-        {
-            var deleted = await _service.DeleteAsync(id);
-
-            if (!deleted)
-            {
-                return NotFound();
-            }
+            TempData[deleted ? "SuccessMessage" : "ErrorMessage"] =
+                deleted
+                    ? "Expense ledger entry deleted successfully."
+                    : "Expense ledger entry not found.";
 
             return RedirectToAction(nameof(Index));
         }
 
-        private void ValidateLedger(ExpenseLedgerDto dto)
+        private async Task LoadAdminsAsync(long tenantId)
         {
-            if (string.IsNullOrWhiteSpace(dto.EntryType) || dto.EntryType.Trim().Length > 10)
-            {
-                ModelState.AddModelError(nameof(dto.EntryType),
-                    "Entry Type is required and must not exceed 10 characters.");
-            }
+            var admins = await _expenseLedgerService
+                .GetAdminsByTenantAsync(tenantId);
 
-            if (string.IsNullOrWhiteSpace(dto.Category) || dto.Category.Trim().Length > 50)
+            ViewBag.Admins = admins.Select(admin => new SelectListItem
             {
-                ModelState.AddModelError(nameof(dto.Category),
-                    "Category is required and must not exceed 50 characters.");
-            }
-
-            if (dto.Amount <= 0)
-            {
-                ModelState.AddModelError(nameof(dto.Amount),
-                    "Amount must be greater than zero.");
-            }
-
-            if (dto.Description?.Length > 250)
-            {
-                ModelState.AddModelError(nameof(dto.Description),
-                    "Description must not exceed 250 characters.");
-            }
-
-            if (dto.EntryDate == default)
-            {
-                ModelState.AddModelError(nameof(dto.EntryDate),
-                    "Entry Date is required.");
-            }
-
-            if (dto.RecordedByAdminId <= 0)
-            {
-                ModelState.AddModelError(nameof(dto.RecordedByAdminId),
-                    "Enter a valid Admin ID.");
-            }
-
-            if (dto.TenantId <= 0)
-            {
-                ModelState.AddModelError(nameof(dto.TenantId),
-                    "Enter a valid Tenant ID.");
-            }
+                Value = admin.RecordedByAdminId.ToString(),
+                Text = $"{admin.RecordedByAdminName} - {admin.Designation}"
+            }).ToList();
         }
     }
 }

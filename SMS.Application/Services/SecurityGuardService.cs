@@ -15,28 +15,30 @@ namespace SMS.Application
         public async Task<IEnumerable<SecurityGuardDto>> GetAllAsync()
         {
             var guards = await _repository.GetAllAsync();
+
             return guards.Select(MapToDto);
         }
 
         public async Task<SecurityGuardDto?> GetByIdAsync(long guardId)
         {
             var guard = await _repository.GetByIdAsync(guardId);
+
             return guard == null ? null : MapToDto(guard);
         }
 
-        public Task<long> CreateAsync(SecurityGuardDto dto)
+        public async Task<long> CreateAsync(SecurityGuardDto dto)
         {
-            return _repository.CreateAsync(MapToEntity(dto));
+            return await _repository.CreateAsync(MapToEntity(dto));
         }
 
-        public Task<bool> UpdateAsync(SecurityGuardDto dto)
+        public async Task<bool> UpdateAsync(SecurityGuardDto dto)
         {
-            return _repository.UpdateAsync(MapToEntity(dto));
+            return await _repository.UpdateAsync(MapToEntity(dto));
         }
 
-        public Task<bool> DeleteAsync(long guardId)
+        public async Task<bool> DeleteAsync(long guardId)
         {
-            return _repository.DeleteAsync(guardId);
+            return await _repository.DeleteAsync(guardId);
         }
 
         private static SecurityGuardDto MapToDto(SecurityGuard guard)
@@ -45,6 +47,7 @@ namespace SMS.Application
             {
                 GuardId = guard.GuardId,
                 UserId = guard.UserId,
+                FullName = guard.FullName,
                 ShiftTiming = guard.ShiftTiming,
                 AssignedGate = guard.AssignedGate,
                 JoiningDate = guard.JoiningDate,
@@ -65,7 +68,7 @@ namespace SMS.Application
                 ShiftTiming = dto.ShiftTiming,
                 AssignedGate = dto.AssignedGate,
                 JoiningDate = dto.JoiningDate,
-                IsActive = dto.IsActive,
+                IsActive = true,
                 CreatedBy = dto.CreatedBy,
                 ModifyBy = dto.ModifyBy
             };

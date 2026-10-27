@@ -5,81 +5,66 @@ namespace SMS.Application
 {
     public class InvoiceService : IInvoiceService
     {
-        private readonly IInvoiceRepository _repository;
+        private readonly IInvoiceRepository _invoiceRepository;
 
-        public InvoiceService(IInvoiceRepository repository)
+        public InvoiceService(IInvoiceRepository invoiceRepository)
         {
-            _repository = repository;
+            _invoiceRepository = invoiceRepository;
         }
 
         public async Task<IEnumerable<InvoiceDto>> GetAllAsync()
         {
-            var invoices = await _repository.GetAllAsync();
-            return invoices.Select(MapToDto);
+            var invoices = await _invoiceRepository.GetAllAsync();
+
+            return invoices.Select(MapToDto).ToList();
         }
 
         public async Task<InvoiceDto?> GetByIdAsync(long invoiceId)
         {
-            var invoice = await _repository.GetByIdAsync(invoiceId);
-            return invoice != null ? MapToDto(invoice) : null;
-        }
+            var invoice = await _invoiceRepository.GetByIdAsync(invoiceId);
 
-        public async Task<long> CreateAsync(InvoiceDto dto)
-        {
-            Validate(dto);
-
-            var entity = MapToEntity(dto);
-            entity.CreatedOn = DateTime.Now;
-            entity.IsActive = true;
-
-            return await _repository.CreateAsync(entity);
-        }
-
-        public async Task<bool> UpdateAsync(InvoiceDto dto)
-        {
-            Validate(dto);
-
-            if (dto.InvoiceId <= 0)
+            if (invoice == null)
             {
-                throw new ArgumentException("Invalid invoice ID.");
+                return null;
             }
 
-            var entity = MapToEntity(dto);
-            entity.ModifyOn = DateTime.Now;
-
-            return await _repository.UpdateAsync(entity);
+            return MapToDto(invoice);
         }
 
-        public Task<bool> DeleteAsync(long invoiceId)
+        public async Task<long> CreateAsync(InvoiceDto invoiceDto)
         {
-            if (invoiceId <= 0)
-            {
-                throw new ArgumentException("Invalid invoice ID.");
-            }
+            var invoice = MapToEntity(invoiceDto);
 
-            return _repository.DeleteAsync(invoiceId);
+            return await _invoiceRepository.CreateAsync(invoice);
         }
 
-        private static InvoiceDto MapToDto(Invoice entity)
+        public async Task<bool> UpdateAsync(InvoiceDto invoiceDto)
+        {
+            var invoice = MapToEntity(invoiceDto);
+
+            return await _invoiceRepository.UpdateAsync(invoice);
+        }
+
+        public async Task<bool> DeleteAsync(long invoiceId)
+        {
+            return await _invoiceRepository.DeleteAsync(invoiceId);
+        }
+
+        private static InvoiceDto MapToDto(Invoice invoice)
         {
             return new InvoiceDto
             {
-                InvoiceId = entity.InvoiceId,
-                SubscriptionId = entity.SubscriptionId,
-                TenantId = entity.TenantId,
-                InvoiceNumber = entity.InvoiceNumber,
-                Amount = entity.Amount,
-                TaxAmount = entity.TaxAmount,
-                TotalAmount = entity.TotalAmount,
-                InvoiceDate = entity.InvoiceDate,
-                DueDate = entity.DueDate,
-                Status = entity.Status,
-                Description = entity.Description,
-                IsActive = entity.IsActive,
-                CreatedOn = entity.CreatedOn,
-                CreatedBy = entity.CreatedBy,
-                ModifyOn = entity.ModifyOn,
-                ModifyBy = entity.ModifyBy
+                InvoiceId = invoice.InvoiceId,
+                SubscriptionId = invoice.SubscriptionId,
+                TenantId = invoice.TenantId,
+                InvoiceNumber = invoice.InvoiceNumber,
+                Amount = invoice.Amount,
+                TaxAmount = invoice.TaxAmount,
+                TotalAmount = invoice.TotalAmount,
+                InvoiceDate = invoice.InvoiceDate,
+                DueDate = invoice.DueDate,
+                Status = invoice.Status,
+                Description = invoice.Description
             };
         }
 
@@ -97,46 +82,8 @@ namespace SMS.Application
                 InvoiceDate = dto.InvoiceDate,
                 DueDate = dto.DueDate,
                 Status = dto.Status,
-                Description = dto.Description,
-                IsActive = dto.IsActive,
-                CreatedOn = dto.CreatedOn ?? default,
-                CreatedBy = dto.CreatedBy,
-                ModifyOn = dto.ModifyOn,
-                ModifyBy = dto.ModifyBy
+                Description = dto.Description
             };
-        }
-
-        private static void Validate(InvoiceDto dto)
-        {
-            if (dto.SubscriptionId <= 0)
-            {
-                throw new ArgumentException("Subscription is required.");
-            }
-
-            if (dto.TenantId <= 0)
-            {
-                throw new ArgumentException("Tenant is required.");
-            }
-
-            if (string.IsNullOrWhiteSpace(dto.InvoiceNumber) || dto.InvoiceNumber.Length > 50)
-            {
-                throw new ArgumentException("Invoice number is required and cannot exceed 50 characters.");
-            }
-
-            if (dto.Amount < 0 || dto.TaxAmount < 0 || dto.TotalAmount < 0)
-            {
-                throw new ArgumentException("Amounts cannot be negative.");
-            }
-
-            if (string.IsNullOrWhiteSpace(dto.Status) || dto.Status.Length > 30)
-            {
-                throw new ArgumentException("Status is required and cannot exceed 30 characters.");
-            }
-
-            if (dto.Description?.Length > 500)
-            {
-                throw new ArgumentException("Description cannot exceed 500 characters.");
-            }
         }
     }
 }

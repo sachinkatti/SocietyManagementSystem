@@ -1,10 +1,10 @@
 ﻿@model SMS.Application.VisitorLogDto
 
 @{
-    ViewData["Title"] = "Visitor Details";
+    ViewData["Title"] = "Visitor Log Details";
 }
 
-<h2>Visitor Details</h2>
+<h2>Visitor Log Details</h2>
 
 <dl class="row">
     <dt class="col-sm-3">Visitor ID</dt>
@@ -16,8 +16,11 @@
     <dt class="col-sm-3">Phone Number</dt>
     <dd class="col-sm-9">@Model.PhoneNumber</dd>
 
-    <dt class="col-sm-3">Visiting Flat</dt>
-    <dd class="col-sm-9">@Model.FlatNumber (@Model.VisitingFlatId)</dd>
+    <dt class="col-sm-3">Tenant</dt>
+    <dd class="col-sm-9">@Model.TenantName</dd>
+
+    <dt class="col-sm-3">Flat</dt>
+    <dd class="col-sm-9">@Model.FlatNumber (@Model.WingName)</dd>
 
     <dt class="col-sm-3">Purpose</dt>
     <dd class="col-sm-9">@Model.Purpose</dd>
@@ -29,23 +32,24 @@
     <dd class="col-sm-9">@Model.ApprovalMethod</dd>
 
     <dt class="col-sm-3">Entry Time</dt>
-    <dd class="col-sm-9">@Model.EntryTime.ToString("dd-MM-yyyy HH:mm")</dd>
+    <dd class="col-sm-9">@Model.EntryTime.ToString("dd-MM-yyyy hh:mm tt")</dd>
 
     <dt class="col-sm-3">Exit Time</dt>
-    <dd class="col-sm-9">@(Model.ExitTime?.ToString("dd-MM-yyyy HH:mm") ?? "-")</dd>
+    <dd class="col-sm-9">
+        @(Model.ExitTime?.ToString("dd-MM-yyyy hh:mm tt") ?? "Not exited")
+    </dd>
 
-    <dt class="col-sm-3">Logged By Guard</dt>
+    <dt class="col-sm-3">Security Guard</dt>
     <dd class="col-sm-9">@Model.GuardName</dd>
 
     <dt class="col-sm-3">Description</dt>
     <dd class="col-sm-9">@Model.Description</dd>
 
-    <dt class="col-sm-3">Tenant ID</dt>
-    <dd class="col-sm-9">@Model.TenantId</dd>
-
     <dt class="col-sm-3">Created On</dt>
-    <dd class="col-sm-9">@Model.CreatedOn.ToString("dd-MM-yyyy HH:mm")</dd>
+    <dd class="col-sm-9">@Model.CreatedOn</dd>
 </dl>
 
-<a asp-action="Edit" asp-route-id="@Model.VisitorId" class="btn btn-primary">Edit</a>
+<a asp-action="Edit" asp-route-id="@Model.VisitorId"
+   class="btn btn-warning">Edit</a>
+
 <a asp-action="Index" class="btn btn-secondary">Back</a>

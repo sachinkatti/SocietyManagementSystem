@@ -1,69 +1,50 @@
-﻿
-using SMS.Domain;
+﻿using SMS.Domain;
 using SMS.Infrastructure;
 
 namespace SMS.Application
 {
     public class AmenityService : IAmenityService
     {
-        private readonly IAmenityRepository _repository;
+        private readonly IAmenityRepository _amenityRepository;
 
-        public AmenityService(IAmenityRepository repository)
+        public AmenityService(IAmenityRepository amenityRepository)
         {
-            _repository = repository;
+            _amenityRepository = amenityRepository;
         }
 
         public async Task<IEnumerable<AmenityDto>> GetAllAsync()
         {
-            var amenities = await _repository.GetAllAsync();
+            var amenities = await _amenityRepository.GetAllAsync();
 
             return amenities.Select(MapToDto);
         }
 
         public async Task<AmenityDto?> GetByIdAsync(long amenityId)
         {
-            var amenity = await _repository.GetByIdAsync(amenityId);
+            var amenity = await _amenityRepository.GetByIdAsync(amenityId);
 
             return amenity == null ? null : MapToDto(amenity);
         }
 
         public async Task<long> CreateAsync(AmenityDto dto)
         {
-            var amenity = new Amenity
-            {
-                Name = dto.Name.Trim(),
-                DepositRequired = dto.DepositRequired,
-                MaxSlotHours = dto.MaxSlotHours,
-                Description = dto.Description,
-                IsActive = true,
-                CreatedOn = DateTime.UtcNow,
-                CreatedBy = dto.CreatedBy,
-                TenantId = dto.TenantId
-            };
+            var amenity = MapToEntity(dto);
 
-            return await _repository.CreateAsync(amenity);
+            return await _amenityRepository.CreateAsync(amenity);
         }
 
         public async Task<bool> UpdateAsync(AmenityDto dto)
         {
-            var amenity = new Amenity
-            {
-                AmenityId = dto.AmenityId,
-                Name = dto.Name.Trim(),
-                DepositRequired = dto.DepositRequired,
-                MaxSlotHours = dto.MaxSlotHours,
-                Description = dto.Description,
-                ModifyOn = DateTime.UtcNow,
-                ModifyBy = dto.ModifyBy,
-                TenantId = dto.TenantId
-            };
+            var amenity = MapToEntity(dto);
+            amenity.AmenityId = dto.AmenityId;
+            amenity.ModifyBy = dto.ModifyBy;
 
-            return await _repository.UpdateAsync(amenity);
+            return await _amenityRepository.UpdateAsync(amenity);
         }
 
-        public Task<bool> DeleteAsync(long amenityId)
+        public async Task<bool> DeleteAsync(long amenityId)
         {
-            return _repository.DeleteAsync(amenityId);
+            return await _amenityRepository.DeleteAsync(amenityId);
         }
 
         private static AmenityDto MapToDto(Amenity amenity)
@@ -71,6 +52,8 @@ namespace SMS.Application
             return new AmenityDto
             {
                 AmenityId = amenity.AmenityId,
+                TenantId = amenity.TenantId,
+                TenantName = amenity.TenantName,
                 Name = amenity.Name,
                 DepositRequired = amenity.DepositRequired,
                 MaxSlotHours = amenity.MaxSlotHours,
@@ -79,8 +62,25 @@ namespace SMS.Application
                 CreatedOn = amenity.CreatedOn,
                 CreatedBy = amenity.CreatedBy,
                 ModifyOn = amenity.ModifyOn,
-                ModifyBy = amenity.ModifyBy,
-                TenantId = amenity.TenantId
+                ModifyBy = amenity.ModifyBy
+            };
+        }
+
+        private static Amenity MapToEntity(AmenityDto dto)
+        {
+            return new Amenity
+            {
+                AmenityId = dto.AmenityId,
+                TenantId = dto.TenantId,
+                Name = dto.Name.Trim(),
+                DepositRequired = dto.DepositRequired,
+                MaxSlotHours = dto.MaxSlotHours,
+                Description = string.IsNullOrWhiteSpace(dto.Description)
+                    ? null
+                    : dto.Description.Trim(),
+                IsActive = dto.IsActive,
+                CreatedBy = dto.CreatedBy,
+                ModifyBy = dto.ModifyBy
             };
         }
     }
